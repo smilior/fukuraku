@@ -124,3 +124,68 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── LP custom animations & utilities ── */
+
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.lp-float { animation: lp-float 4s ease-in-out infinite; }
+
+@keyframes lp-bar-in {
+  from { width: 0; }
+}
+.lp-bar-animate {
+  animation: lp-bar-in 1.5s 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes lp-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lp-fade-up   { animation: lp-fade-up 0.6s ease-out forwards; }
+.lp-fade-up-1 { animation-delay: 0.1s;  opacity: 0; }
+.lp-fade-up-2 { animation-delay: 0.25s; opacity: 0; }
+.lp-fade-up-3 { animation-delay: 0.4s;  opacity: 0; }
+.lp-fade-up-4 { animation-delay: 0.55s; opacity: 0; }
+
+@keyframes lp-pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.lp-pulse-ring { position: relative; }
+.lp-pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.35);
+  animation: lp-pulse-ring 1.6s ease-out infinite;
+}
+
+.lp-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.lp-gradient-text {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lp-plan-card { transition: transform 0.2s, box-shadow 0.2s; }
+.lp-plan-card:hover { transform: translateY(-4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-float, .lp-bar-animate, .lp-fade-up,
+  .lp-fade-up-1, .lp-fade-up-2, .lp-fade-up-3, .lp-fade-up-4,
+  .lp-pulse-ring::before {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
