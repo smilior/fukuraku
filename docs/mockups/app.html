@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>副楽 - 副業確定申告アプリ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Meiryo', sans-serif;
+      background: #CBD5E1;
+      overscroll-behavior: none;
+    }
+    .app-shell {
+      max-width: 390px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      background: #F8FAFC;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0,0,0,0.3);
+    }
+    @media (max-width: 430px) {
+      body { background: #F8FAFC; }
+      .app-shell { box-shadow: none; max-width: 100%; }
+    }
+    .scroll-area {
+      height: calc(100dvh - 120px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* Progress bar animation */
+    @keyframes barIn {
+      from { width: 0; }
+    }
+    .bar-animate { animation: barIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    /* Pulse ring for alert */
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+    .pulse-ring::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background: rgba(239,68,68,0.4);
+      animation: pulseRing 1.5s ease-out infinite;
+    }
+
+    /* Shimmer for OCR loading */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .shimmer-box {
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+      border-radius: 8px;
+    }
+
+    /* Slide up modal */
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-enter { animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+
+    /* Fade in */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+    /* Check pop */
+    @keyframes checkPop {
+      0% { transform: scale(0); opacity: 0; }
+      70% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .check-pop { animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    /* Tab indicator */
+    .tab-active { color: #4F46E5; }
+    .tab-inactive { color: #94A3B8; }
+  </style>
+</head>
+<body>
+<div class="app-shell" x-data="fukuraku()" x-init="init()">
+
+  <!-- ── STATUS BAR ── -->
+  <div class="bg-white h-11 flex items-center justify-between px-5 flex-shrink-0 border-b border-slate-100">
+    <span class="text-[13px] font-semibold text-slate-800">9:41</span>
+    <div class="flex items-center gap-1.5">
+      <!-- Signal -->
+      <svg class="w-4 h-3.5 text-slate-800" viewBox="0 0 17 12" fill="currentColor">
+        <rect x="0" y="7" width="3" height="5" rx="0.5"/>
+        <rect x="4.5" y="4.5" width="3" height="7.5" rx="0.5"/>
+        <rect x="9" y="2" width="3" height="10" rx="0.5"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="0.5" opacity="0.3"/>
+      </svg>
+      <!-- WiFi -->
+      <svg class="w-4 h-3.5 text-slate-800" viewBox="0 0 24 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 16.5a1 1 0 110-2 1 1 0 010 2z" fill="currentColor"/>
+        <path d="M7.5 12a6.5 6.5 0 019 0"/>
+        <path d="M3.5 7.5a12 12 0 0117 0"/>
+      </svg>
+      <!-- Battery -->
+      <div class="flex items-center gap-0.5">
+        <div class="border border-slate-700 rounded-[3px] w-[22px] h-[11px] p-px">
+          <div class="bg-slate-800 rounded-[2px] h-full" style="width:75%"></div>
+        </div>
+        <div class="w-0.5 h-[5px] bg-slate-700 rounded-r-sm"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN SCROLL AREA ── -->
+  <div class="scroll-area">
+
+    <!-- ════════════════════════════════
+         DASHBOARD VIEW
+    ════════════════════════════════ -->
+    <div x-show="view==='dashboard'" x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+
+      <!-- Header -->
+      <div class="bg-white px-5 py-4 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] text-slate-400 tracking-wide">こんにちは</p>
+          <h1 class="text-[17px] font-bold text-slate-900 leading-tight">田中 健太 さん</h1>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <button class="relative w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center cursor-pointer hover:bg-slate-200 transition-colors">
+            <svg class="w-[18px] h-[18px] text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          </button>
+          <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600 text-[13px] cursor-pointer select-none">TK</div>
+        </div>
+      </div>
+
+      <!-- 20万円 Alert Card -->
+      <div class="px-4 pt-3">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-red-100 overflow-hidden relative">
+          <!-- Decorative bg -->
+          <div class="absolute -top-8 -right-8 w-32 h-32 bg-red-50 rounded-full opacity-60"></div>
+          <div class="absolute -bottom-6 -right-2 w-20 h-20 bg-orange-50 rounded-full opacity-40"></div>
+
+          <div class="relative">
+            <!-- Top row -->
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <p class="text-[11px] text-slate-400 mb-0.5">2025年 副業所得（累計）</p>
+                <div class="flex items-baseline gap-1">
+                  <span class="text-[13px] text-slate-500 font-medium">¥</span>
+                  <span class="text-[32px] font-extrabold text-slate-900 leading-none" x-text="netIncome.toLocaleString('ja-JP')"></span>
+                </div>
+              </div>
+              <div class="relative flex-shrink-0">
+                <div class="pulse-ring relative bg-red-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
+                  確定申告が必要！
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="mb-1">
+              <div class="flex justify-between text-[11px] text-slate-400 mb-1.5">
+                <span>¥0</span>
+                <span class="font-semibold text-slate-600">¥200,000（確定申告ライン）</span>
+              </div>
+              <div class="bg-slate-100 rounded-full h-5 overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-gradient-to-r from-amber-400 to-red-500 flex items-center justify-end pr-2 bar-animate"
+                  :style="`width: ${progressPct}%`">
+                  <span class="text-white text-[11px] font-bold" x-text="`${progressPct}%`"></span>
+                </div>
+              </div>
+              <div class="flex justify-between text-[10px] mt-1.5">
+                <span class="text-slate-400">収入 ¥<span x-text="totalIncome.toLocaleString()"></span> − 経費 ¥<span x-text="totalExpense.toLocaleString()"></span></span>
+                <span class="text-red-500 font-semibold">あと¥<span x-text="Math.max(0, 200000-netIncome).toLocaleString()"></span> で上限</span>
+              </div>
+            </div>
+
+            <!-- Tip -->
+            <div class="mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              </svg>
+              <p class="text-[11px] text-red-600 font-medium">3月15日（確定申告期限）まであと <strong>21日</strong> です</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="px-4 pt-3 grid grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" @click="view='income'">
+          <div class="flex items-center gap-2 mb-2.5">
+            <div class="w-7 h-7 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+              </svg>
+            </div>
+            <span class="text-[11px] text-slate-400 font-medium">副業収入</span>
+          </div>
+          <p class="text-[18px] font-extrabold text-slate-900">¥<span x-text="totalIncome.toLocaleString()"></span></p>
+          <p class="text-[11px] text-emerald-600 mt-1 font-medium">今月 +¥45,000</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" @click="view='expense'">
+          <div class="flex items-center gap-2 mb-2.5">
+            <div class="w-7 h-7 bg-orange-50 rounded-xl flex items-center justify-center">
+              <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
+              </svg>
+            </div>
+            <span class="text-[11px] text-slate-400 font-medium">経費合計</span>
+          </div>
+          <p class="text-[18px] font-extrabold text-slate-900">¥<span x-text="totalExpense.toLocaleString()"></span></p>
+          <p class="text-[11px] text-orange-500 mt-1 font-medium">今月 −¥8,400</p>
+        </div>
+      </div>
+
+      <!-- Monthly Chart -->
+      <div class="px-4 pt-3">
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-[13px] font-bold text-slate-700">月別収入推移</h3>
+            <span class="text-[11px] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full font-medium">2025年</span>
+          </div>
+          <div class="flex items-end gap-2 h-16">
+            <template x-for="bar in monthlyBars" :key="bar.month">
+              <div class="flex flex-col items-center gap-1 flex-1">
+                <div class="w-full rounded-t-md transition-all" :class="bar.active ? 'bg-indigo-600' : 'bg-indigo-100'" :style="`height: ${bar.h}px`"></div>
+                <span class="text-[10px]" :class="bar.active ? 'text-indigo-600 font-bold' : 'text-slate-400'" x-text="bar.month"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="px-4 pt-3 pb-6">
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-50 flex items-center justify-between">
+            <h3 class="text-[13px] font-bold text-slate-700">最近の取引</h3>
+            <button class="text-[12px] text-indigo-600 font-medium cursor-pointer" @click="view='income'">すべて見る →</button>
+          </div>
+          <template x-for="tx in recentTx" :key="tx.id">
+            <div class="px-4 py-3 flex items-center gap-3 border-b border-slate-50 last:border-0">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" :class="tx.type==='income' ? 'bg-emerald-50' : 'bg-orange-50'">
+                <svg class="w-5 h-5" :class="tx.type==='income' ? 'text-emerald-600' : 'text-orange-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" :d="tx.type==='income' ? 'M7 11l5-5m0 0l5 5m-5-5v12' : 'M17 13l-5 5m0 0l-5-5m5 5V6'"/>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-semibold text-slate-900 truncate" x-text="tx.desc"></p>
+                <p class="text-[11px] text-slate-400" x-text="tx.sub"></p>
+              </div>
+              <span class="text-[13px] font-bold" :class="tx.type==='income' ? 'text-emerald-600' : 'text-orange-500'" x-text="(tx.type==='income' ? '+' : '−') + '¥' + tx.amount.toLocaleString()"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         INCOME VIEW
+    ════════════════════════════════ -->
+    <div x-show="view==='income'" x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+      <div class="bg-white px-5 py-4 flex items-center justify-between border-b border-slate-100">
+        <h2 class="text-[17px] font-bold text-slate-900">収入記録</h2>
+        <button @click="openAddIncome()" class="flex items-center gap-1.5 bg-indigo-600 text-white text-[13px] font-semibold px-3 py-1.5 rounded-xl cursor-pointer hover:bg-indigo-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          収入を追加
+        </button>
+      </div>
+
+      <!-- Summary banner -->
+      <div class="mx-4 mt-3 bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] text-emerald-600">収入合計</p>
+          <p class="text-[22px] font-extrabold text-emerald-700">¥<span x-text="totalIncome.toLocaleString()"></span></p>
+        </div>
+        <div class="text-right">
+          <p class="text-[11px] text-emerald-600">件数</p>
+          <p class="text-[22px] font-extrabold text-emerald-700" x-text="incomes.length + '件'"></p>
+        </div>
+      </div>
+
+      <!-- Income list -->
+      <div class="px-4 pt-3 pb-6 space-y-2">
+        <template x-for="inc in incomes" :key="inc.id">
+          <div class="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[14px] font-semibold text-slate-900" x-text="inc.desc"></p>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[11px] text-slate-400" x-text="inc.dateLabel"></span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" :class="inc.taxed ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'" x-text="inc.taxed ? '源泉徴収あり' : '源泉徴収なし'"></span>
+              </div>
+            </div>
+            <span class="text-[15px] font-extrabold text-emerald-600">+¥<span x-text="inc.amount.toLocaleString()"></span></span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         EXPENSE VIEW
+    ════════════════════════════════ -->
+    <div x-show="view==='expense'" x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+      <div class="bg-white px-5 py-4 flex items-center justify-between border-b border-slate-100">
+        <h2 class="text-[17px] font-bold text-slate-900">経費記録</h2>
+        <button @click="openAddExpense()" class="text-[13px] text-indigo-600 font-semibold cursor-pointer">手動で追加</button>
+      </div>
+
+      <!-- AI OCR Button -->
+      <div class="px-4 pt-4">
+        <button @click="startOCR()" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-4 flex items-center gap-4 shadow-lg shadow-indigo-200 cursor-pointer active:scale-95 transition-transform">
+          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <div class="text-left">
+            <p class="text-white font-bold text-[15px]">レシートをAI仕訳</p>
+            <p class="text-white/75 text-[12px] mt-0.5">撮影するだけで自動入力 · 約¥0.2/枚</p>
+          </div>
+          <svg class="w-5 h-5 text-white/60 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <!-- Expense Summary -->
+      <div class="mx-4 mt-3 bg-orange-50 border border-orange-100 rounded-2xl px-4 py-3 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] text-orange-600">経費合計</p>
+          <p class="text-[22px] font-extrabold text-orange-700">¥<span x-text="totalExpense.toLocaleString()"></span></p>
+        </div>
+        <div class="text-right">
+          <p class="text-[11px] text-orange-600">件数</p>
+          <p class="text-[22px] font-extrabold text-orange-700" x-text="expenses.length + '件'"></p>
+        </div>
+      </div>
+
+      <!-- Expense list -->
+      <div class="px-4 pt-3 pb-6 space-y-2">
+        <template x-for="exp in expenses" :key="exp.id">
+          <div class="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2h-4m-6 4h6m-3-4v4"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[14px] font-semibold text-slate-900" x-text="exp.desc"></p>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[11px] text-slate-400" x-text="exp.dateLabel"></span>
+                <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full" x-text="exp.category"></span>
+              </div>
+            </div>
+            <span class="text-[15px] font-extrabold text-orange-500">−¥<span x-text="exp.amount.toLocaleString()"></span></span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         SUMMARY VIEW
+    ════════════════════════════════ -->
+    <div x-show="view==='summary'" x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+      <div class="bg-white px-5 py-4 border-b border-slate-100">
+        <h2 class="text-[17px] font-bold text-slate-900">確定申告サマリー</h2>
+        <p class="text-[12px] text-slate-400 mt-0.5">2025年分（令和7年分）</p>
+      </div>
+
+      <!-- Status badge -->
+      <div class="mx-4 mt-4 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-center gap-3">
+        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01"/></svg>
+        </div>
+        <div>
+          <p class="text-[13px] font-bold text-red-700">確定申告が必要です</p>
+          <p class="text-[11px] text-red-500">副業所得が20万円を超えています</p>
+        </div>
+      </div>
+
+      <!-- Summary Table -->
+      <div class="mx-4 mt-3 bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-50 bg-slate-50">
+          <p class="text-[12px] font-bold text-slate-500 uppercase tracking-wider">収支サマリー</p>
+        </div>
+        <div class="divide-y divide-slate-50">
+          <div class="px-4 py-3 flex justify-between items-center">
+            <span class="text-[13px] text-slate-600">副業収入（総額）</span>
+            <span class="text-[14px] font-bold text-slate-900">¥<span x-text="totalIncome.toLocaleString()"></span></span>
+          </div>
+          <div class="px-4 py-3 flex justify-between items-center">
+            <span class="text-[13px] text-slate-600">経費合計</span>
+            <span class="text-[14px] font-bold text-orange-600">−¥<span x-text="totalExpense.toLocaleString()"></span></span>
+          </div>
+          <div class="px-4 py-3 flex justify-between items-center bg-slate-50">
+            <span class="text-[14px] font-bold text-slate-900">雑所得（課税所得）</span>
+            <span class="text-[16px] font-extrabold text-indigo-600">¥<span x-text="netIncome.toLocaleString()"></span></span>
+          </div>
+          <div class="px-4 py-3 flex justify-between items-center">
+            <span class="text-[13px] text-slate-600">概算税額（所得税 20%）</span>
+            <span class="text-[14px] font-bold text-red-600">¥<span x-text="Math.round(netIncome*0.2).toLocaleString()"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="mx-4 mt-3 bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-50 bg-slate-50">
+          <p class="text-[12px] font-bold text-slate-500 uppercase tracking-wider">申告準備チェックリスト</p>
+        </div>
+        <template x-for="item in checklist" :key="item.label">
+          <div class="px-4 py-3 flex items-center gap-3 border-b border-slate-50 last:border-0 cursor-pointer" @click="item.done = !item.done">
+            <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition-all" :class="item.done ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'">
+              <svg x-show="item.done" class="w-3 h-3 text-white check-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <span class="text-[13px]" :class="item.done ? 'text-slate-400 line-through' : 'text-slate-800'" x-text="item.label"></span>
+          </div>
+        </template>
+      </div>
+
+      <!-- Export -->
+      <div class="px-4 pt-3 pb-6 space-y-2.5">
+        <button class="w-full bg-indigo-600 text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-2.5 cursor-pointer hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          CSVをダウンロード
+        </button>
+        <button class="w-full bg-emerald-600 text-white font-bold text-[14px] py-4 rounded-2xl flex items-center justify-center gap-2.5 cursor-pointer hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          国税庁 e-Taxへ
+        </button>
+      </div>
+    </div>
+  </div><!-- end scroll-area -->
+
+  <!-- ── BOTTOM TAB BAR ── -->
+  <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-10">
+    <div class="flex items-center h-[56px]">
+
+      <!-- Home -->
+      <button @click="view='dashboard'" class="flex-1 flex flex-col items-center justify-center gap-0.5 cursor-pointer" :class="view==='dashboard' ? 'tab-active' : 'tab-inactive'">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="view==='dashboard' ? '2.5' : '1.8'">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        <span class="text-[10px] font-medium">ホーム</span>
+      </button>
+
+      <!-- Income -->
+      <button @click="view='income'" class="flex-1 flex flex-col items-center justify-center gap-0.5 cursor-pointer" :class="view==='income' ? 'tab-active' : 'tab-inactive'">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="view==='income' ? '2.5' : '1.8'">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+        </svg>
+        <span class="text-[10px] font-medium">収入</span>
+      </button>
+
+      <!-- Center Add Button -->
+      <button @click="openAddIncome()" class="flex-1 flex flex-col items-center justify-center cursor-pointer -mt-4">
+        <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-300 hover:bg-indigo-700 transition-colors active:scale-95 transition-transform">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        </div>
+      </button>
+
+      <!-- Expense -->
+      <button @click="view='expense'" class="flex-1 flex flex-col items-center justify-center gap-0.5 cursor-pointer" :class="view==='expense' ? 'tab-active' : 'tab-inactive'">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="view==='expense' ? '2.5' : '1.8'">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 14H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2h-4m-6 4h6m-3-4v4"/>
+        </svg>
+        <span class="text-[10px] font-medium">経費</span>
+      </button>
+
+      <!-- Summary -->
+      <button @click="view='summary'" class="flex-1 flex flex-col items-center justify-center gap-0.5 cursor-pointer" :class="view==='summary' ? 'tab-active' : 'tab-inactive'">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="view==='summary' ? '2.5' : '1.8'">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span class="text-[10px] font-medium">申告書</span>
+      </button>
+    </div>
+    <!-- safe area for iOS -->
+    <div class="h-[env(safe-area-inset-bottom,0px)]"></div>
+  </div>
+
+  <!-- ── MODAL BACKDROP ── -->
+  <div x-show="showModal" class="absolute inset-0 bg-black/40 z-20 backdrop-blur-sm" @click="closeModal()" x-transition:enter="transition duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
+
+  <!-- ── ADD MODAL (Sheet) ── -->
+  <div x-show="showModal" class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl z-30 modal-enter overflow-hidden" style="max-height: 85vh; overflow-y: auto;">
+
+    <!-- Drag handle -->
+    <div class="flex justify-center pt-3 pb-1">
+      <div class="w-10 h-1 bg-slate-200 rounded-full"></div>
+    </div>
+
+    <!-- Modal: OCR Scanning -->
+    <div x-show="ocrState==='scanning'" class="px-5 py-6">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <svg class="w-9 h-9 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-[17px] font-bold text-slate-900">AIがレシートを解析中...</h3>
+        <p class="text-[13px] text-slate-400 mt-1">GPT-4o Visionで金額・店名・日付を読み取っています</p>
+      </div>
+      <!-- Shimmer placeholders -->
+      <div class="space-y-3">
+        <div class="shimmer-box h-12 w-full"></div>
+        <div class="shimmer-box h-12 w-full"></div>
+        <div class="shimmer-box h-12 w-3/4"></div>
+        <div class="shimmer-box h-12 w-full"></div>
+      </div>
+      <div class="mt-5 flex items-center gap-2 justify-center">
+        <div class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay:0ms"></div>
+        <div class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay:150ms"></div>
+        <div class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay:300ms"></div>
+      </div>
+    </div>
+
+    <!-- Modal: OCR Done / Manual Expense -->
+    <div x-show="ocrState==='done' || (modalType==='expense' && ocrState==='idle')" class="px-5 pt-3 pb-6">
+      <!-- Success banner for OCR -->
+      <div x-show="ocrState==='done'" class="mb-4 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 flex items-center gap-3 fade-in">
+        <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4 text-white check-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <div>
+          <p class="text-[13px] font-bold text-emerald-700">AI仕訳が完了しました！</p>
+          <p class="text-[11px] text-emerald-600">内容を確認して保存してください</p>
+        </div>
+      </div>
+
+      <h3 x-show="ocrState==='idle'" class="text-[17px] font-bold text-slate-900 mb-4">経費を追加</h3>
+
+      <!-- Form (OCR filled) -->
+      <div class="space-y-3.5">
+        <div>
+          <label class="text-[12px] font-semibold text-slate-500 block mb-1">内容・品名</label>
+          <input type="text" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" placeholder="例：Amazon PC マウス" x-model="currentExpense.desc">
+        </div>
+        <div>
+          <label class="text-[12px] font-semibold text-slate-500 block mb-1">金額（円）</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[14px]">¥</span>
+            <input type="text" class="w-full border border-slate-200 rounded-xl pl-8 pr-4 py-3 text-[14px] focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" placeholder="0" x-model="currentExpense.amount">
+          </div>
+        </div>
+        <div>
+          <label class="text-[12px] font-semibold text-slate-500 block mb-1">カテゴリ</label>
+          <select class="w-full border border-slate-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-indigo-400 transition-all bg-white cursor-pointer" x-model="currentExpense.category">
+            <option>備品・消耗品</option>
+            <option>図書・研修費</option>
+            <option>通信費</option>
+            <option>交通費</option>
+            <option>会議費</option>
+            <option>ソフトウェア</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[12px] font-semibold text-slate-500 block mb-1">日付</label>
+          <input type="date" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-indigo-400 transition-all" x-model="currentExpense.date">
+        </div>
+      </div>
+      <button @click="saveExpense()" class="w-full mt-5 bg-indigo-600 text-white font-bold text-[15px] py-4 rounded-2xl cursor-pointer hover:bg-indigo-700 transition-colors">
+        保存する
+      </button>
+    </div>
+
+    <!-- Modal: Add Income -->
+    <div x-show="modalType==='income'" class="px-5 pt-3 pb-6">
+      <h3 class="text-[17px] font-bold text-slate-900 mb-4">収入を追加</h3>
+      <div class="space-y-3.5">
+        <div>
+          <label class="text-[12px] font-semibold text-slate-500 block mb-1">内容・取引先</label>
+          <input type="text" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" placeholder="例：Webライティング" x-model="newIncome.desc">
+        </div>
+        <div>
+          <label class="text-[12px] font-semibold text-slate-500 block mb-1">金額（円）</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[14px]">¥</span>
+            <input type="number" class="w-full border border-slate-200 rounded-xl pl-8 pr-4 py-3 text-[14px] focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all" placeholder="0" x-model="newIncome.amount">
+          </div>
+        </div>
+        <div>
+          <label class="text-[12px] font-semibold text-slate-500 block mb-1">日付</label>
+          <input type="date" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-indigo-400 transition-all" x-model="newIncome.date">
+        </div>
+        <div class="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl cursor-pointer" @click="newIncome.taxed = !newIncome.taxed">
+          <span class="text-[13px] text-slate-700 font-medium">源泉徴収あり</span>
+          <div class="w-11 h-6 rounded-full transition-colors flex items-center px-0.5" :class="newIncome.taxed ? 'bg-indigo-600' : 'bg-slate-300'">
+            <div class="w-5 h-5 bg-white rounded-full shadow transition-transform" :class="newIncome.taxed ? 'translate-x-5' : 'translate-x-0'"></div>
+          </div>
+        </div>
+      </div>
+      <button @click="saveIncome()" class="w-full mt-5 bg-emerald-600 text-white font-bold text-[15px] py-4 rounded-2xl cursor-pointer hover:bg-emerald-700 transition-colors">
+        保存する
+      </button>
+    </div>
+
+  </div><!-- end modal -->
+
+</div><!-- end app-shell -->
+
+<script>
+function fukuraku() {
+  return {
+    view: 'dashboard',
+    showModal: false,
+    modalType: 'income', // 'income' | 'expense'
+    ocrState: 'idle',    // 'idle' | 'scanning' | 'done'
+
+    incomes: [
+      { id:1, date:'2025-02-15', dateLabel:'2月15日', desc:'Webライティング', amount:45000, taxed:true },
+      { id:2, date:'2025-02-10', dateLabel:'2月10日', desc:'コンサルティング', amount:30000, taxed:false },
+      { id:3, date:'2025-01-28', dateLabel:'1月28日', desc:'Webライティング', amount:38000, taxed:true },
+      { id:4, date:'2025-01-15', dateLabel:'1月15日', desc:'セミナー講師', amount:25000, taxed:false },
+      { id:5, date:'2024-12-20', dateLabel:'12月20日', desc:'Webライティング', amount:32000, taxed:true },
+      { id:6, date:'2024-12-05', dateLabel:'12月5日',  desc:'コンサルティング', amount:22000, taxed:false },
+    ],
+    expenses: [
+      { id:1, date:'2025-02-18', dateLabel:'2月18日', desc:'PC周辺機器',           amount:12800, category:'備品・消耗品' },
+      { id:2, date:'2025-02-12', dateLabel:'2月12日', desc:'ビジネス書籍（3冊）',   amount:3200,  category:'図書・研修費' },
+      { id:3, date:'2025-01-30', dateLabel:'1月30日', desc:'カフェ作業代',           amount:2400,  category:'会議費' },
+      { id:4, date:'2025-01-22', dateLabel:'1月22日', desc:'サブスクソフト',         amount:9800,  category:'ソフトウェア' },
+      { id:5, date:'2024-12-15', dateLabel:'12月15日', desc:'オンラインセミナー',    amount:5000,  category:'図書・研修費' },
+      { id:6, date:'2024-12-08', dateLabel:'12月8日',  desc:'WiFi代（按分50%）',   amount:2000,  category:'通信費' },
+    ],
+    monthlyBars: [
+      { month:'9月',  h:18, active:false },
+      { month:'10月', h:30, active:false },
+      { month:'11月', h:24, active:false },
+      { month:'12月', h:38, active:false },
+      { month:'1月',  h:32, active:false },
+      { month:'2月',  h:52, active:true  },
+    ],
+    checklist: [
+      { label:'源泉徴収票を用意した', done:true },
+      { label:'副業収入の記録が完了した', done:true },
+      { label:'経費の領収書を整理した', done:false },
+      { label:'確定申告書類をダウンロードした', done:false },
+      { label:'e-Taxで申告を完了した', done:false },
+    ],
+    newIncome: { desc:'', amount:'', date:'', taxed:false },
+    currentExpense: { desc:'', amount:'', category:'備品・消耗品', date:'' },
+
+    get totalIncome() {
+      return this.incomes.reduce((s, i) => s + i.amount, 0);
+    },
+    get totalExpense() {
+      return this.expenses.reduce((s, e) => s + e.amount, 0);
+    },
+    get netIncome() {
+      return this.totalIncome - this.totalExpense;
+    },
+    get progressPct() {
+      return Math.min(100, (this.netIncome / 200000) * 100).toFixed(1);
+    },
+    get recentTx() {
+      const inc = this.incomes.slice(0,2).map(i => ({...i, type:'income', sub:i.dateLabel + ' · ' + (i.taxed ? '源泉徴収あり' : '源泉徴収なし')}));
+      const exp = this.expenses.slice(0,1).map(e => ({...e, type:'expense', sub:e.dateLabel + ' · ' + e.category}));
+      return [...inc, ...exp].slice(0,4);
+    },
+
+    init() {
+      const today = new Date().toISOString().split('T')[0];
+      this.newIncome.date = today;
+      this.currentExpense.date = today;
+    },
+    openAddIncome() {
+      this.modalType = 'income';
+      this.ocrState = 'idle';
+      this.newIncome = { desc:'', amount:'', date: new Date().toISOString().split('T')[0], taxed:false };
+      this.showModal = true;
+    },
+    openAddExpense() {
+      this.modalType = 'expense';
+      this.ocrState = 'idle';
+      this.currentExpense = { desc:'', amount:'', category:'備品・消耗品', date: new Date().toISOString().split('T')[0] };
+      this.showModal = true;
+    },
+    startOCR() {
+      this.modalType = 'expense';
+      this.ocrState = 'scanning';
+      this.currentExpense = { desc:'', amount:'', category:'備品・消耗品', date: new Date().toISOString().split('T')[0] };
+      this.showModal = true;
+      // Simulate AI processing
+      setTimeout(() => {
+        this.currentExpense = {
+          desc: 'Amazon ワイヤレスマウス',
+          amount: '4,980',
+          category: '備品・消耗品',
+          date: new Date().toISOString().split('T')[0],
+        };
+        this.ocrState = 'done';
+      }, 2600);
+    },
+    saveIncome() {
+      if (!this.newIncome.desc || !this.newIncome.amount) return;
+      const today = new Date();
+      const dateLabel = `${today.getMonth()+1}月${today.getDate()}日`;
+      this.incomes.unshift({
+        id: Date.now(),
+        date: this.newIncome.date,
+        dateLabel,
+        desc: this.newIncome.desc,
+        amount: parseInt(String(this.newIncome.amount).replace(/,/g,'')),
+        taxed: this.newIncome.taxed,
+      });
+      this.closeModal();
+    },
+    saveExpense() {
+      const amt = parseInt(String(this.currentExpense.amount).replace(/,/g,''));
+      if (!this.currentExpense.desc || !amt) return;
+      const today = new Date();
+      const dateLabel = `${today.getMonth()+1}月${today.getDate()}日`;
+      this.expenses.unshift({
+        id: Date.now(),
+        date: this.currentExpense.date,
+        dateLabel,
+        desc: this.currentExpense.desc,
+        amount: amt,
+        category: this.currentExpense.category,
+      });
+      this.closeModal();
+    },
+    closeModal() {
+      this.showModal = false;
+      this.ocrState = 'idle';
+    },
+  };
+}
+</script>
+</body>
+</html>
