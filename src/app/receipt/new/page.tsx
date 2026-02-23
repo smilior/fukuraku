@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -90,11 +91,12 @@ export default function ReceiptNewPage() {
 
     if (insertError) {
       console.error(insertError)
-      setError('保存に失敗しました')
+      toast.error('保存に失敗しました。再試行してください')
       setStage('preview')
       return
     }
 
+    toast.success('経費を追加しました')
     router.push('/expense')
   }
 

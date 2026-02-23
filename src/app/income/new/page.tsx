@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -88,14 +89,15 @@ export default function NewIncomePage() {
 
       if (error) {
         console.error('Failed to create income:', error)
-        setErrors({ submit: '保存に失敗しました。もう一度お試しください。' })
+        toast.error('保存に失敗しました。再試行してください')
         return
       }
 
+      toast.success('収入を追加しました')
       router.push('/income')
     } catch (err) {
       console.error('Unexpected error:', err)
-      setErrors({ submit: '予期しないエラーが発生しました。' })
+      toast.error('予期しないエラーが発生しました')
     } finally {
       setIsSubmitting(false)
     }

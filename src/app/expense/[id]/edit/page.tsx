@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -98,13 +99,16 @@ export default function EditExpensePage() {
 
       if (error) {
         console.error('Failed to update expense:', error)
+        toast.error('保存に失敗しました。再試行してください')
         setSaving(false)
         return
       }
 
+      toast.success('経費を更新しました')
       router.push('/expense')
     } catch (err) {
       console.error('Unexpected error:', err)
+      toast.error('予期しないエラーが発生しました')
       setSaving(false)
     }
   }
@@ -118,14 +122,17 @@ export default function EditExpensePage() {
 
       if (error) {
         console.error('Failed to delete expense:', error)
+        toast.error('削除に失敗しました。再試行してください')
         setDeleting(false)
         setShowDeleteConfirm(false)
         return
       }
 
+      toast.success('経費を削除しました')
       router.push('/expense')
     } catch (err) {
       console.error('Unexpected error:', err)
+      toast.error('予期しないエラーが発生しました')
       setDeleting(false)
       setShowDeleteConfirm(false)
     }

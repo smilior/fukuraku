@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -139,14 +140,15 @@ export default function EditIncomePage() {
 
       if (error) {
         console.error('Failed to update income:', error)
-        setErrors({ submit: '保存に失敗しました。もう一度お試しください。' })
+        toast.error('保存に失敗しました。再試行してください')
         return
       }
 
+      toast.success('収入を更新しました')
       router.push('/income')
     } catch (err) {
       console.error('Unexpected error:', err)
-      setErrors({ submit: '予期しないエラーが発生しました。' })
+      toast.error('予期しないエラーが発生しました')
     } finally {
       setIsSubmitting(false)
     }
@@ -162,15 +164,16 @@ export default function EditIncomePage() {
 
       if (error) {
         console.error('Failed to delete income:', error)
-        setErrors({ submit: '削除に失敗しました。もう一度お試しください。' })
+        toast.error('削除に失敗しました。再試行してください')
         setDeleteDialogOpen(false)
         return
       }
 
+      toast.success('収入を削除しました')
       router.push('/income')
     } catch (err) {
       console.error('Unexpected error:', err)
-      setErrors({ submit: '予期しないエラーが発生しました。' })
+      toast.error('予期しないエラーが発生しました')
       setDeleteDialogOpen(false)
     } finally {
       setIsDeleting(false)

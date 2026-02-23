@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -59,13 +60,16 @@ export default function NewExpensePage() {
 
       if (error) {
         console.error('Failed to insert expense:', error)
+        toast.error('保存に失敗しました。再試行してください')
         setSaving(false)
         return
       }
 
+      toast.success('経費を追加しました')
       router.push('/expense')
     } catch (err) {
       console.error('Unexpected error:', err)
+      toast.error('予期しないエラーが発生しました')
       setSaving(false)
     }
   }

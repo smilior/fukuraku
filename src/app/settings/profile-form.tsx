@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,14 +44,12 @@ export default function ProfileForm({ user }: ProfileFormProps) {
   )
   const [annualIncomeRange, setAnnualIncomeRange] = useState(user.annual_income_range ?? '')
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const supabase = createClient()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    setMessage(null)
 
     const { error } = await supabase
       .from('users')
@@ -66,9 +65,9 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     setSaving(false)
 
     if (error) {
-      setMessage({ type: 'error', text: '保存に失敗しました。もう一度お試しください。' })
+      toast.error('保存に失敗しました。再試行してください')
     } else {
-      setMessage({ type: 'success', text: 'プロフィールを保存しました。' })
+      toast.success('プロフィールを保存しました')
     }
   }
 
@@ -140,17 +139,6 @@ export default function ProfileForm({ user }: ProfileFormProps) {
           ))}
         </div>
       </div>
-
-      {/* メッセージ */}
-      {message && (
-        <p
-          className={`text-sm font-medium ${
-            message.type === 'success' ? 'text-green-600' : 'text-red-500'
-          }`}
-        >
-          {message.text}
-        </p>
-      )}
 
       <Button type="submit" disabled={saving}>
         {saving ? '保存中...' : '保存する'}
