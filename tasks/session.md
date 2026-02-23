@@ -4,7 +4,18 @@
 
 ## 今セッションでやったこと
 
-### UI全面改修 — モバイルファーストのモックアップ忠実実装
+### UI全面改修 Phase 2 — モックアップ完全一致修正（/ui-ux-pro-max + Agent Team）
+
+Agent Team（engineer-1 / engineer-2）で並行修正:
+- `bottom-nav.tsx`: ホーム(部屋付き)/収入/経費(レシート)/申告書(グラフ) SVGパスをMoc完全一致
+- `dashboard/page.tsx`: サマリーカードをアイコン+ラベル横並びに / YearlyChart→カスタムdivバーチャート（indigo・凡例なし）/ ベル・警告・取引アイコン全path統一
+- `summary/page.tsx`: サブタイトル追加・申告バナーをアイコン+テキスト型に・mx-4統一
+- `filing-checklist.tsx`: タイトル「申告準備チェックリスト」(uppercase tracking-wider)・チェックSVGパス修正
+- commit: 801e6ae → push済み
+
+---
+
+### UI全面改修 Phase 1 — モバイルファーストのモックアップ忠実実装
 
 `docs/mockups/app.html` に忠実なデザインへ全面書き直し。
 
