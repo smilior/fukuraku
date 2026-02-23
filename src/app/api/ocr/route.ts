@@ -35,11 +35,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   }
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+
+  if (file.size > MAX_FILE_SIZE) {
+    return NextResponse.json({ error: 'ファイルサイズは5MB以下にしてください' }, { status: 413 })
+  }
+
+  // Magic bytes validation (read first 4 bytes)
+  const bytes = await file.arrayBuffer()
+  const header = new Uint8Array(bytes.slice(0, 4))
+  const isJpeg = header[0] === 0xFF && header[1] === 0xD8
+  const isPng = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47
+  const isWebp = header[0] === 0x52 && header[1] === 0x49 // RIFF
+  // HEIC detection is complex, skip magic bytes for HEIC, use MIME type only
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif'
+
+  if (!ALLOWED_MIME_TYPES.includes(file.type) && !isJpeg && !isPng && !isWebp && !isHeic) {
+    return NextResponse.json({ error: '画像ファイル（JPEG・PNG・WebP・HEIC）のみ対応しています' }, { status: 400 })
+  }
+
   // Supabase Storage にアップロード
   const serviceClient = createServiceClient()
   const ext = file.name.split('.').pop() ?? 'jpg'
   const storagePath = `${user.id}/${Date.now()}.${ext}`
-  const bytes = await file.arrayBuffer()
 
   const { error: uploadError } = await serviceClient.storage
     .from('receipts')
