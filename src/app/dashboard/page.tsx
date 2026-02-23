@@ -247,13 +247,14 @@ export default async function DashboardPage() {
               </CardContent>
             </Card>
           </Link>
-          <Card className="opacity-50 cursor-not-allowed">
-            <CardContent className="pt-4 text-center">
-              <div className="text-2xl mb-1">📷</div>
-              <p className="text-sm font-medium text-gray-400">カメラ</p>
-              <p className="text-xs text-gray-400">準備中</p>
-            </CardContent>
-          </Card>
+          <Link href="/receipt/new" className="block">
+            <Card className="hover:bg-blue-50 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-center">
+                <div className="text-2xl mb-1">📷</div>
+                <p className="text-sm font-medium">カメラ</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </main>
     </div>
