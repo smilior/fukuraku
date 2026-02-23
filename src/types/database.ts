@@ -53,6 +53,7 @@ export interface Database {
           side_job_type: string | null
           side_job_start_year: number | null
           annual_income_range: string | null
+          stripe_customer_id: string | null
           created_at: string
           updated_at: string
         }
@@ -67,6 +68,7 @@ export interface Database {
           side_job_type?: string | null
           side_job_start_year?: number | null
           annual_income_range?: string | null
+          stripe_customer_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -79,6 +81,7 @@ export interface Database {
           side_job_type?: string | null
           side_job_start_year?: number | null
           annual_income_range?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string
         }
         Relationships: []

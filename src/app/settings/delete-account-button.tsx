@@ -18,11 +18,11 @@ export default function DeleteAccountButton() {
 
     setDeleting(true)
 
-    // まずサインアウトしてセッションを無効化
-    await supabase.auth.signOut()
-
-    // アカウント削除 API を呼ぶ
+    // アカウント削除 API を呼ぶ（認証が必要なので先にサインアウトしない）
     await fetch('/api/account/delete', { method: 'POST' })
+
+    // 削除後にサインアウトしてセッションを無効化
+    await supabase.auth.signOut()
 
     router.push('/')
   }

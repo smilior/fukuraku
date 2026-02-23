@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export async function POST() {
   const supabase = await createClient()
@@ -9,10 +9,9 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { error } = await supabase
-    .from('users')
-    .delete()
-    .eq('id', user.id)
+  // Use service client to delete auth user (cascades to public.users via FK)
+  const serviceClient = createServiceClient()
+  const { error } = await serviceClient.auth.admin.deleteUser(user.id)
 
   if (error) {
     return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
