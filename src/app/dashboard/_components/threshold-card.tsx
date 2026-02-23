@@ -54,6 +54,7 @@ export default async function ThresholdCard({ userId, year, displayName, initial
       </header>
 
       {/* 20万円カード */}
+      <div className="max-w-lg mx-auto lg:max-w-5xl lg:px-4 px-4 pt-3">
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-red-100 overflow-hidden relative">
         <div className="absolute -top-8 -right-8 w-32 h-32 bg-red-50 rounded-full opacity-60 pointer-events-none" />
         <div className="absolute -bottom-6 -right-2 w-20 h-20 bg-orange-50 rounded-full opacity-40 pointer-events-none" />
@@ -97,6 +98,7 @@ export default async function ThresholdCard({ userId, year, displayName, initial
             3月15日（確定申告期限）まであと <strong>{daysUntilDeadline}日</strong> です
           </p>
         </div>
+      </div>
       </div>
     </>
   )
