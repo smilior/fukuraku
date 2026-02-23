@@ -53,12 +53,11 @@
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
-### 7. Commit Rules
-- **コード変更**: テスト（`bunx tsc --noEmit` + 該当テスト）がパスしてからコミット
-- **CLAUDE.md 更新**: 更新のたびに即コミット（テスト不要）
-- **tasks/ 更新**: コード変更と同じコミットに含めてよい
+### 7. Commit & Push Rules
+- **コミット＆pushはセット**（バイブコーディング運用）— コミット後は必ず push する
+- **コード変更**: テスト（`bunx tsc --noEmit` + 該当テスト）がパスしてからコミット＆push
+- **CLAUDE.md / tasks/ 更新**: 即コミット＆push（テスト不要）
 - コミットメッセージは Conventional Commits 形式（`feat:` `chore:` `fix:` など）
-- ユーザーに明示的に依頼されない限り push しない
 
 ---
 
