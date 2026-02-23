@@ -3,23 +3,21 @@
 ## 最終更新: 2026-02-23
 
 ## 今セッションでやったこと
-- Issue #3: Supabase Auth（Google OAuth + Email）実装完了
-  - shadcn/ui 初期化 + components (button, input, label, card, separator)
-  - src/middleware.ts 作成（proxy.ts は Next.js に認識されなかったため正しい名前で作成）
-  - src/app/(auth)/login/page.tsx: Google OAuth + メール/パスワード ログイン
-  - src/app/(auth)/signup/page.tsx: Google OAuth + メール/パスワード 新規登録
-  - src/app/auth/callback/route.ts: OAuth PKCE コード交換
-  - src/app/dashboard/page.tsx + logout-button.tsx: プレースホルダー + ログアウト
-  - src/app/page.tsx: 認証状態に応じて /dashboard or /login にリダイレクト
-  - layout.tsx: メタデータを副楽用に更新、lang="ja"
+- Issue #3: Supabase Auth（Google OAuth）実装完了
+  - shadcn/ui 初期化・認証ページ作成・middleware→proxy.ts 修正
+  - Google OAuth のみに絞る（メール/パスワード削除）
+- Issue #26: Vercel Preview Deployments 設定完了
+  - vercel link（GitHub smilior/fukuraku 接続）
+  - Preview・Production 環境変数設定（Supabase dev キー）
+  - Production デプロイ: https://fukuraku.vercel.app
+  - PR#30 で Preview URL 自動生成を動作確認済み
 
 ## 次セッションの再開ポイント
-Issue #26「Vercel Preview Deployments」から着手
+Issue #29「Stripe テスト/本番モード切り替え設定」から着手
 
 ## 未解決・持ち越し
-- Supabase Dashboard で Google OAuth Provider を有効化が必要（手動作業）
-  1. Supabase Dashboard → Authentication → Providers → Google を ON
-  2. Google Cloud Console で OAuth Client ID を取得
-  3. Authorized redirect URI: https://<project>.supabase.co/auth/v1/callback
-- proxy.ts は削除候補（middleware.ts が正しく動作している）
-- prod マイグレーションは本番運用開始時に実施
+- Supabase prod の OAuth redirect URL に Vercel本番URLを追加する必要あり
+  → `uri_allow_list` に `https://fukuraku.vercel.app/**` を追加
+  → Google Cloud Console の Authorized origins にも追加
+- Production Supabase（mjmxibsponmvucyqdpvc）への切り替えは本番運用開始時
+- Stripe 実キーは Issue #29 で設定
