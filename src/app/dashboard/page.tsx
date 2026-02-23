@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import YearlyChart from './yearly-chart'
 import BottomNav from '@/components/app/bottom-nav'
 import type { IncomeRow, ExpenseRow } from '@/types/database'
 
@@ -113,12 +112,11 @@ export default async function DashboardPage() {
           </div>
           <div className="flex items-center gap-2.5">
             {/* 通知ベル */}
-            <button className="relative flex items-center justify-center w-9 h-9 bg-slate-100 rounded-full text-slate-500" aria-label="通知">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            <button className="relative flex items-center justify-center w-9 h-9 bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer" aria-label="通知">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
             </button>
             {/* イニシャルアバター */}
             <div className="flex items-center justify-center w-9 h-9 bg-indigo-100 rounded-full text-indigo-600 font-bold text-[13px]">
@@ -167,11 +165,9 @@ export default async function DashboardPage() {
           </div>
 
           {/* Tipボックス */}
-          <div className="mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-start gap-2">
-            <svg className="text-red-500 shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
+          <div className="mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-2">
+            <svg className="text-red-500 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
             </svg>
             <p className="text-[11px] text-red-600 font-medium">
               3月15日（確定申告期限）まであと <strong>{daysUntilDeadline}日</strong> です
@@ -182,29 +178,31 @@ export default async function DashboardPage() {
         {/* 2×2 サマリー */}
         <div className="grid grid-cols-2 gap-3">
           <Link href="/income">
-            <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center w-7 h-7 bg-emerald-50 rounded-xl mb-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="19" x2="12" y2="5" />
-                  <polyline points="5 12 12 5 19 12" />
-                </svg>
+            <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="flex items-center justify-center w-7 h-7 bg-emerald-50 rounded-xl">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                  </svg>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium">副業収入</span>
               </div>
-              <span className="text-[11px] text-slate-400">副業収入</span>
               <p className="text-[18px] font-extrabold text-slate-900">{formatCurrency(annualIncome)}</p>
-              <p className="text-[11px] text-emerald-600">今月 +{formatCurrency(monthlyIncome)}</p>
+              <p className="text-[11px] text-emerald-600 mt-1 font-medium">今月 +{formatCurrency(monthlyIncome)}</p>
             </div>
           </Link>
           <Link href="/expense">
-            <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center w-7 h-7 bg-orange-50 rounded-xl mb-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <polyline points="19 12 12 19 5 12" />
-                </svg>
+            <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="flex items-center justify-center w-7 h-7 bg-orange-50 rounded-xl">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
+                  </svg>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium">経費合計</span>
               </div>
-              <span className="text-[11px] text-slate-400">経費合計</span>
               <p className="text-[18px] font-extrabold text-slate-900">{formatCurrency(annualExpense)}</p>
-              <p className="text-[11px] text-orange-500">今月 −{formatCurrency(monthlyExpense)}</p>
+              <p className="text-[11px] text-orange-500 mt-1 font-medium">今月 −{formatCurrency(monthlyExpense)}</p>
             </div>
           </Link>
         </div>
@@ -215,7 +213,29 @@ export default async function DashboardPage() {
             <h3 className="text-[13px] font-bold text-slate-700">月別収入推移</h3>
             <span className="text-[11px] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{year}年</span>
           </div>
-          <YearlyChart data={recentChartData} />
+          {/* 月別収入推移チャート */}
+          {(() => {
+            const maxVal = Math.max(...recentChartData.map(d => d.収入), 1)
+            return (
+              <div className="flex items-end gap-2 h-16">
+                {recentChartData.map((bar, i) => {
+                  const isActive = i === recentChartData.length - 1
+                  const h = Math.round((bar.収入 / maxVal) * 52) + 4
+                  return (
+                    <div key={bar.month} className="flex flex-col items-center gap-1 flex-1">
+                      <div
+                        className={`w-full rounded-t-md ${isActive ? 'bg-indigo-600' : 'bg-indigo-100'}`}
+                        style={{ height: `${h}px` }}
+                      />
+                      <span className={`text-[10px] ${isActive ? 'text-indigo-600 font-bold' : 'text-slate-400'}`}>
+                        {bar.month}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
         </div>
 
         {/* 最近の取引 */}
@@ -231,14 +251,12 @@ export default async function DashboardPage() {
               <div key={`${tx.type}-${tx.id}`} className="px-4 py-3 flex items-center gap-3 border-b border-slate-50 last:border-0">
                 <div className={`flex items-center justify-center w-9 h-9 rounded-xl ${tx.type === 'income' ? 'bg-emerald-50' : 'bg-orange-50'}`}>
                   {tx.type === 'income' ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="19" x2="12" y2="5" />
-                      <polyline points="5 12 12 5 19 12" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 11l5-5m0 0l5 5m-5-5v12"/>
                     </svg>
                   ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <polyline points="19 12 12 19 5 12" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
                     </svg>
                   )}
                 </div>

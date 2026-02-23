@@ -21,15 +21,10 @@ export default function FilingChecklist() {
     })
   }
 
-  const doneCount = checked.filter(Boolean).length
-
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-        <h3 className="text-[13px] font-bold text-slate-700">申告チェックリスト</h3>
-        <span className="text-[11px] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full font-medium">
-          {doneCount}/{ITEMS.length}
-        </span>
+      <div className="px-4 py-3 border-b border-slate-100">
+        <p className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">申告準備チェックリスト</p>
       </div>
       <ul>
         {ITEMS.map((item, i) => (
@@ -47,18 +42,8 @@ export default function FilingChecklist() {
                 }`}
               >
                 {checked[i] && (
-                  <svg
-                    className="app-check-pop"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="2 6 5 9 10 3" />
+                  <svg className="app-check-pop" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                   </svg>
                 )}
               </div>

@@ -57,7 +57,10 @@ export default async function SummaryPage({ searchParams }: PageProps) {
       {/* ヘッダー */}
       <header className="bg-white border-b border-slate-100 px-5 py-4">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <h2 className="text-[17px] font-bold text-slate-900">確定申告サマリー</h2>
+          <div>
+            <h2 className="text-[17px] font-bold text-slate-900">確定申告サマリー</h2>
+            <p className="text-[12px] text-slate-400 mt-0.5">{selectedYear}年分（令和{selectedYear - 2018}年分）</p>
+          </div>
           {/* 年度切り替え */}
           <form method="GET" className="flex items-center gap-2">
             <select
@@ -79,23 +82,36 @@ export default async function SummaryPage({ searchParams }: PageProps) {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 pt-3 space-y-3">
+      <div className="max-w-lg mx-auto pt-3 space-y-3">
         {/* 申告要否バナー */}
-        <div
-          className={`rounded-2xl px-4 py-3 text-[13px] font-semibold ${
-            needsFiling
-              ? 'bg-red-50 border border-red-100 text-red-700'
-              : 'bg-emerald-50 border border-emerald-100 text-emerald-700'
-          }`}
-          role="alert"
-        >
-          {needsFiling
-            ? `⚠️ 確定申告が必要です（${selectedYear}年の所得: ${formatCurrency(netIncome)}）`
-            : `✓ 確定申告は不要です（20万円以下）（${selectedYear}年の所得: ${formatCurrency(netIncome)}）`}
-        </div>
+        {needsFiling ? (
+          <div className="mx-4 mt-4 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 bg-red-500 rounded-full flex-shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-red-700">確定申告が必要です</p>
+              <p className="text-[11px] text-red-500">副業所得が20万円を超えています</p>
+            </div>
+          </div>
+        ) : (
+          <div className="mx-4 mt-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 bg-emerald-500 rounded-full flex-shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-emerald-700">確定申告は不要です</p>
+              <p className="text-[11px] text-emerald-500">副業所得が20万円以下です</p>
+            </div>
+          </div>
+        )}
 
         {/* 収支サマリーテーブル */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="mx-4 mt-3 bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
             <span className="text-[12px] font-bold text-slate-500 uppercase tracking-wide">収支サマリー</span>
           </div>
@@ -125,10 +141,12 @@ export default async function SummaryPage({ searchParams }: PageProps) {
         </div>
 
         {/* チェックリスト */}
-        <FilingChecklist />
+        <div className="mx-4">
+          <FilingChecklist />
+        </div>
 
         {/* ボタン */}
-        <div className="space-y-2.5 pb-6">
+        <div className="mx-4 space-y-2.5 pb-6">
           <a
             href={`/api/summary/csv?year=${selectedYear}`}
             download
