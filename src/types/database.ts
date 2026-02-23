@@ -93,7 +93,7 @@ export interface Database {
           date: string        // 'YYYY-MM-DD'
           amount: number      // 円単位
           source: string
-          category: IncomeCategory
+          category: IncomeCategory | null
           memo: string | null
           created_at: string
           updated_at: string
@@ -104,7 +104,7 @@ export interface Database {
           date: string
           amount: number
           source: string
-          category?: IncomeCategory
+          category?: IncomeCategory | null
           memo?: string | null
           created_at?: string
           updated_at?: string
@@ -113,7 +113,7 @@ export interface Database {
           date?: string
           amount?: number
           source?: string
-          category?: IncomeCategory
+          category?: IncomeCategory | null
           memo?: string | null
           updated_at?: string
         }
@@ -125,7 +125,7 @@ export interface Database {
           user_id: string
           date: string        // 'YYYY-MM-DD'
           amount: number      // 円単位
-          category: ExpenseCategory
+          category: ExpenseCategory | null
           description: string
           memo: string | null
           receipt_id: string | null
@@ -137,7 +137,7 @@ export interface Database {
           user_id: string
           date: string
           amount: number
-          category?: ExpenseCategory
+          category?: ExpenseCategory | null
           description: string
           memo?: string | null
           receipt_id?: string | null
@@ -147,7 +147,7 @@ export interface Database {
         Update: {
           date?: string
           amount?: number
-          category?: ExpenseCategory
+          category?: ExpenseCategory | null
           description?: string
           memo?: string | null
           receipt_id?: string | null

@@ -6,20 +6,22 @@ import MonthSelect from '@/components/app/month-select'
 import { formatCurrency, formatDateJP } from '@/lib/format'
 import type { ExpenseRow, ExpenseCategory } from '@/types/database'
 
-const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
-  '通信費': '通信費',
-  '消耗品費': '消耗品費',
-  '接待交際費': '接待交際費',
-  '交通費': '交通費',
-  '広告宣伝費': '広告宣伝費',
-  '外注費': '外注費',
-  '研修費': '研修費',
-  '地代家賃': '地代家賃',
-  'その他': 'その他',
+const CATEGORY_COLORS: Record<ExpenseCategory, { bg: string; text: string }> = {
+  '通信費':     { bg: 'bg-blue-50',    text: 'text-blue-600' },
+  '消耗品費':   { bg: 'bg-amber-50',   text: 'text-amber-600' },
+  '接待交際費': { bg: 'bg-pink-50',    text: 'text-pink-600' },
+  '交通費':     { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+  '広告宣伝費': { bg: 'bg-violet-50',  text: 'text-violet-600' },
+  '外注費':     { bg: 'bg-indigo-50',  text: 'text-indigo-600' },
+  '研修費':     { bg: 'bg-teal-50',    text: 'text-teal-600' },
+  '地代家賃':   { bg: 'bg-orange-50',  text: 'text-orange-600' },
+  'その他':     { bg: 'bg-slate-100',  text: 'text-slate-500' },
 }
 
+const PAGE_SIZE = 20
+
 interface PageProps {
-  searchParams: Promise<{ month?: string }>
+  searchParams: Promise<{ month?: string; page?: string }>
 }
 
 export default async function ExpensePage({ searchParams }: PageProps) {
@@ -30,11 +32,14 @@ export default async function ExpensePage({ searchParams }: PageProps) {
     redirect('/login')
   }
 
-  const { month } = await searchParams
+  const { month, page: pageStr } = await searchParams
+  const page = Math.max(1, parseInt(pageStr ?? '1', 10) || 1)
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
 
   let query = supabase
     .from('expenses')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', user.id)
     .order('date', { ascending: false })
 
@@ -46,14 +51,22 @@ export default async function ExpensePage({ searchParams }: PageProps) {
     query = query.gte('date', startDate).lt('date', endDate)
   }
 
-  const { data: expensesData, error } = await query
+  const { data: expensesData, error, count } = await query.range(from, to)
 
   if (error) {
     console.error('Failed to fetch expenses:', error)
   }
 
   const rows: ExpenseRow[] = (expensesData as ExpenseRow[] | null) ?? []
+  const totalCount = count ?? 0
   const total = rows.reduce((sum, e) => sum + e.amount, 0)
+
+  function buildPageUrl(p: number) {
+    const params = new URLSearchParams()
+    if (month) params.set('month', month)
+    params.set('page', String(p))
+    return `/expense?${params.toString()}`
+  }
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-24 lg:pb-0 lg:pl-60">
@@ -127,36 +140,52 @@ export default async function ExpensePage({ searchParams }: PageProps) {
             </Link>
           </div>
         ) : (
-          <ul className="px-4 pt-3 pb-6 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
-            {rows.map((expense) => (
-              <li key={expense.id}>
-                <Link href={`/expense/${expense.id}/edit`}>
-                  <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-center w-10 h-10 bg-orange-50 rounded-xl shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="16" y1="13" x2="8" y2="13" />
-                        <line x1="16" y1="17" x2="8" y2="17" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-slate-900 truncate">{expense.description}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] text-slate-400">{formatDateJP(expense.date)}</span>
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                          {CATEGORY_LABELS[expense.category]}
-                        </span>
+          <>
+            <ul className="px-4 pt-3 pb-3 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
+              {rows.map((expense) => (
+                <li key={expense.id}>
+                  <Link href={`/expense/${expense.id}/edit`}>
+                    <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-center w-10 h-10 bg-orange-50 rounded-xl shrink-0">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-semibold text-slate-900 truncate">{expense.description}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[11px] text-slate-400">{formatDateJP(expense.date)}</span>
+                          {expense.category && (() => {
+                            const colors = CATEGORY_COLORS[expense.category] ?? CATEGORY_COLORS['その他']
+                            return (
+                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text}`}>
+                                {expense.category}
+                              </span>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                      <span className="text-[15px] font-extrabold text-orange-500 shrink-0">
+                        −{formatCurrency(expense.amount)}
+                      </span>
                     </div>
-                    <span className="text-[15px] font-extrabold text-orange-500 shrink-0">
-                      −{formatCurrency(expense.amount)}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {totalCount > PAGE_SIZE && (
+              <div className="flex justify-between items-center px-4 py-3 text-[13px]">
+                <span className="text-slate-400">{totalCount}件中{from + 1}〜{Math.min(from + PAGE_SIZE, totalCount)}件</span>
+                <div className="flex gap-2">
+                  {page > 1 && <Link href={buildPageUrl(page - 1)} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">← 前</Link>}
+                  {from + PAGE_SIZE < totalCount && <Link href={buildPageUrl(page + 1)} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">次 →</Link>}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

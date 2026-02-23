@@ -53,7 +53,7 @@ export default function EditIncomePage() {
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
   const [source, setSource] = useState('')
-  const [category, setCategory] = useState<IncomeCategory>('フリーランス')
+  const [category, setCategory] = useState<IncomeCategory | ''>('')
   const [memo, setMemo] = useState('')
   const [hasWithholding, setHasWithholding] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -91,7 +91,7 @@ export default function EditIncomePage() {
         setAmount(String(income.amount))
         setDate(income.date)
         setSource(income.source)
-        setCategory(income.category)
+        setCategory(income.category ?? '')
         setMemo(income.memo ?? '')
       } catch (err) {
         console.error('Unexpected error fetching income:', err)
@@ -132,7 +132,7 @@ export default function EditIncomePage() {
           amount: amountNumber,
           date,
           source: source.trim(),
-          category,
+          category: category || null,
           memo: memo.trim() || null,
         })
         .eq('id', id)
@@ -259,15 +259,16 @@ export default function EditIncomePage() {
 
               {/* Category */}
               <div className="space-y-1.5">
-                <Label htmlFor="category">カテゴリ</Label>
+                <Label htmlFor="category">カテゴリ（任意）</Label>
                 <Select
-                  value={category}
-                  onValueChange={(val) => setCategory(val as IncomeCategory)}
+                  value={category || '__none__'}
+                  onValueChange={(val) => setCategory(val === '__none__' ? '' : val as IncomeCategory)}
                 >
                   <SelectTrigger id="category" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__">選択しない</SelectItem>
                     {INCOME_CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}

@@ -41,7 +41,7 @@ export default function NewIncomePage() {
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [source, setSource] = useState('')
-  const [category, setCategory] = useState<IncomeCategory>('フリーランス')
+  const [category, setCategory] = useState<IncomeCategory | ''>('')
   const [memo, setMemo] = useState('')
   const [hasWithholding, setHasWithholding] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -82,7 +82,7 @@ export default function NewIncomePage() {
         amount: amountNumber,
         date,
         source: source.trim(),
-        category,
+        category: category || null,
         memo: memo.trim() || null,
       })
 
@@ -164,15 +164,16 @@ export default function NewIncomePage() {
 
               {/* Category */}
               <div className="space-y-1.5">
-                <Label htmlFor="category">カテゴリ</Label>
+                <Label htmlFor="category">カテゴリ（任意）</Label>
                 <Select
-                  value={category}
-                  onValueChange={(val) => setCategory(val as IncomeCategory)}
+                  value={category || '__none__'}
+                  onValueChange={(val) => setCategory(val === '__none__' ? '' : val as IncomeCategory)}
                 >
                   <SelectTrigger id="category" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__">選択しない</SelectItem>
                     {INCOME_CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}

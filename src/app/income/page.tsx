@@ -4,10 +4,22 @@ import Link from 'next/link'
 import BottomNav from '@/components/app/bottom-nav'
 import MonthSelect from '@/components/app/month-select'
 import { formatCurrency, formatDateJP } from '@/lib/format'
-import type { IncomeRow } from '@/types/database'
+import type { IncomeRow, IncomeCategory } from '@/types/database'
+
+const INCOME_CATEGORY_COLORS: Record<IncomeCategory, { bg: string; text: string }> = {
+  'フリーランス':   { bg: 'bg-indigo-50',  text: 'text-indigo-600' },
+  'アフィリエイト': { bg: 'bg-violet-50',   text: 'text-violet-600' },
+  '転売・せどり':   { bg: 'bg-amber-50',    text: 'text-amber-600' },
+  'YouTube・動画':  { bg: 'bg-red-50',      text: 'text-red-600' },
+  '株・投資':       { bg: 'bg-blue-50',     text: 'text-blue-600' },
+  '不動産':         { bg: 'bg-teal-50',     text: 'text-teal-600' },
+  'その他':         { bg: 'bg-slate-100',   text: 'text-slate-500' },
+}
+
+const PAGE_SIZE = 20
 
 interface PageProps {
-  searchParams: Promise<{ month?: string }>
+  searchParams: Promise<{ month?: string; page?: string }>
 }
 
 export default async function IncomePage({ searchParams }: PageProps) {
@@ -18,11 +30,14 @@ export default async function IncomePage({ searchParams }: PageProps) {
     redirect('/login')
   }
 
-  const { month } = await searchParams
+  const { month, page: pageStr } = await searchParams
+  const page = Math.max(1, parseInt(pageStr ?? '1', 10) || 1)
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
 
   let query = supabase
     .from('incomes')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', user.id)
     .order('date', { ascending: false })
 
@@ -34,14 +49,22 @@ export default async function IncomePage({ searchParams }: PageProps) {
     query = query.gte('date', startDate).lte('date', endDateStr)
   }
 
-  const { data: incomes, error } = await query
+  const { data: incomes, error, count } = await query.range(from, to)
 
   if (error) {
     console.error('Failed to fetch incomes:', error)
   }
 
   const rows = (incomes ?? []) as IncomeRow[]
+  const totalCount = count ?? 0
   const total = rows.reduce((sum, row) => sum + row.amount, 0)
+
+  function buildPageUrl(p: number) {
+    const params = new URLSearchParams()
+    if (month) params.set('month', month)
+    params.set('page', String(p))
+    return `/income?${params.toString()}`
+  }
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-24 lg:pb-0 lg:pl-60">
@@ -97,34 +120,50 @@ export default async function IncomePage({ searchParams }: PageProps) {
             </Link>
           </div>
         ) : (
-          <ul className="px-4 pt-3 pb-6 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
-            {rows.map((income) => (
-              <li key={income.id}>
-                <Link href={`/income/${income.id}/edit`}>
-                  <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-center w-10 h-10 bg-emerald-50 rounded-xl shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="19" x2="12" y2="5" />
-                        <polyline points="5 12 12 5 19 12" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-slate-900 truncate">{income.source}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] text-slate-400">{formatDateJP(income.date)}</span>
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600">
-                          {income.category}
-                        </span>
+          <>
+            <ul className="px-4 pt-3 pb-3 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
+              {rows.map((income) => (
+                <li key={income.id}>
+                  <Link href={`/income/${income.id}/edit`}>
+                    <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-center w-10 h-10 bg-emerald-50 rounded-xl shrink-0">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="19" x2="12" y2="5" />
+                          <polyline points="5 12 12 5 19 12" />
+                        </svg>
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-semibold text-slate-900 truncate">{income.source}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[11px] text-slate-400">{formatDateJP(income.date)}</span>
+                          {income.category && (() => {
+                            const colors = INCOME_CATEGORY_COLORS[income.category] ?? INCOME_CATEGORY_COLORS['その他']
+                            return (
+                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text}`}>
+                                {income.category}
+                              </span>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                      <span className="text-[15px] font-extrabold text-emerald-600 shrink-0">
+                        +{formatCurrency(income.amount)}
+                      </span>
                     </div>
-                    <span className="text-[15px] font-extrabold text-emerald-600 shrink-0">
-                      +{formatCurrency(income.amount)}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {totalCount > PAGE_SIZE && (
+              <div className="flex justify-between items-center px-4 py-3 text-[13px]">
+                <span className="text-slate-400">{totalCount}件中{from + 1}〜{Math.min(from + PAGE_SIZE, totalCount)}件</span>
+                <div className="flex gap-2">
+                  {page > 1 && <Link href={buildPageUrl(page - 1)} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">← 前</Link>}
+                  {from + PAGE_SIZE < totalCount && <Link href={buildPageUrl(page + 1)} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">次 →</Link>}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

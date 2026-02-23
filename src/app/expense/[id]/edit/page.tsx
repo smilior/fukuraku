@@ -35,7 +35,7 @@ export default function EditExpensePage() {
 
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
-  const [category, setCategory] = useState<ExpenseCategory>('その他')
+  const [category, setCategory] = useState<ExpenseCategory | ''>('')
   const [description, setDescription] = useState('')
   const [memo, setMemo] = useState('')
 
@@ -68,7 +68,7 @@ export default function EditExpensePage() {
       const data = rawData as ExpenseRow
       setAmount(String(data.amount))
       setDate(data.date)
-      setCategory(data.category)
+      setCategory(data.category ?? '')
       setDescription(data.description)
       setMemo(data.memo ?? '')
       setLoading(false)
@@ -90,7 +90,7 @@ export default function EditExpensePage() {
         .update({
           date,
           amount: Number(amount),
-          category,
+          category: category || null,
           description: description.trim(),
           memo: memo.trim() || null,
         })
@@ -192,14 +192,14 @@ export default function EditExpensePage() {
 
               {/* カテゴリ */}
               <div className="space-y-1.5">
-                <Label htmlFor="category">カテゴリ</Label>
+                <Label htmlFor="category">カテゴリ（任意）</Label>
                 <select
                   id="category"
-                  required
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
+                  onChange={(e) => setCategory(e.target.value as ExpenseCategory | '')}
                   className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                 >
+                  <option value="">選択しない</option>
                   {EXPENSE_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
