@@ -16,6 +16,7 @@
 | 環境 | URL | Webhook ID |
 |------|-----|-----------|
 | 本番 | `https://fukuraku.smilior.com/api/stripe/webhook` | `we_1T3s3fRQRbdjVDUhf59RlLlb` |
+| テスト | `https://fukuraku-test.smilior.com/api/stripe/webhook` | - |
 | ローカル | `http://localhost:3000/api/stripe/webhook`（stripe listen 経由） | - |
 
 ## Webhook イベント
