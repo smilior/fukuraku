@@ -6,9 +6,9 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_test_place
 })
 
 export const PRICE_IDS = {
-  basic:  process.env.STRIPE_PRICE_BASIC!,
-  pro:    process.env.STRIPE_PRICE_PRO!,
-  season: process.env.STRIPE_PRICE_SEASON!,
+  basic:  process.env.STRIPE_PRICE_BASIC ?? '',
+  pro:    process.env.STRIPE_PRICE_PRO ?? '',
+  season: process.env.STRIPE_PRICE_SEASON ?? '',
 } as const
 
 export type PlanKey = keyof typeof PRICE_IDS

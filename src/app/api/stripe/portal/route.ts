@@ -10,15 +10,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if (!user.email) {
+    return NextResponse.json({ error: 'Email required' }, { status: 400 })
+  }
+
   const origin = request.headers.get('origin') ?? 'http://localhost:3000'
 
   // メールアドレスで既存 customer を検索
-  const customers = await stripe.customers.list({ email: user.email!, limit: 1 })
+  const customers = await stripe.customers.list({ email: user.email, limit: 1 })
   let customerId = customers.data[0]?.id
 
   if (!customerId) {
     const customer = await stripe.customers.create({
-      email: user.email!,
+      email: user.email,
       metadata: { userId: user.id },
     })
     customerId = customer.id
