@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import OcrConsentDialog, { useOcrConsent } from '@/components/app/ocr-consent-dialog'
 
 type OcrResult = {
   store_name: string | null
@@ -22,6 +23,7 @@ type Stage = 'upload' | 'processing' | 'preview' | 'saving'
 export default function ReceiptNewPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pendingFileRef = useRef<File | null>(null)
 
   const [stage, setStage] = useState<Stage>('upload')
   const [preview, setPreview] = useState<string | null>(null)
@@ -36,12 +38,14 @@ export default function ReceiptNewPage() {
   const [category, setCategory] = useState('その他')
   const [memo, setMemo] = useState('')
 
+  const { showDialog, requestConsent, handleConsent, handleDecline } = useOcrConsent()
+
   const CATEGORIES = [
     '通信費', '消耗品費', '接待交際費', '交通費',
     '広告宣伝費', '外注費', '研修費', '地代家賃', 'その他',
   ]
 
-  async function handleFileSelect(file: File) {
+  async function processFile(file: File) {
     const url = URL.createObjectURL(file)
     setPreview(url)
     setStage('processing')
@@ -69,6 +73,30 @@ export default function ReceiptNewPage() {
     setAmount(result.total_amount ? String(result.total_amount) : '')
     setCategory(result.category ?? 'その他')
     setStage('preview')
+  }
+
+  async function handleFileSelect(file: File) {
+    pendingFileRef.current = file
+    const consented = await requestConsent()
+    if (!consented) {
+      pendingFileRef.current = null
+      return
+    }
+    processFile(file)
+  }
+
+  function onConsentGranted() {
+    handleConsent()
+    const file = pendingFileRef.current
+    if (file) {
+      pendingFileRef.current = null
+      processFile(file)
+    }
+  }
+
+  function onConsentDeclined() {
+    handleDecline()
+    pendingFileRef.current = null
   }
 
   async function handleConfirm() {
@@ -108,6 +136,10 @@ export default function ReceiptNewPage() {
         </button>
         <h1 className="text-xl font-bold mt-1">レシートを撮影・アップロード</h1>
       </div>
+
+      {showDialog && (
+        <OcrConsentDialog onConsent={onConsentGranted} onDecline={onConsentDeclined} />
+      )}
 
       {/* アップロード */}
       {stage === 'upload' && (
