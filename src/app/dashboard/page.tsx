@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BottomNav from '@/components/app/bottom-nav'
+import ChartYearSelect from '@/components/app/chart-year-select'
 import type { IncomeRow, ExpenseRow } from '@/types/database'
 
 const THRESHOLD = 200_000
@@ -240,36 +241,34 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             {/* 月別チャート */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[13px] font-bold text-slate-700">月別収支推移</h3>
-                <form method="GET" className="flex items-center gap-1.5">
-                  <select
-                    name="chartYear"
-                    defaultValue={chartYear}
-                    className="h-7 rounded-lg border border-slate-200 bg-indigo-50 px-2 text-[11px] text-indigo-600 font-medium focus:outline-none focus:border-indigo-400"
-                  >
-                    {Array.from({ length: year - 2020 + 1 }, (_, i) => year - i).map(y => (
-                      <option key={y} value={y}>{y}年</option>
-                    ))}
-                  </select>
-                  <button type="submit" className="h-7 px-2.5 bg-indigo-600 text-white text-[11px] font-semibold rounded-lg">表示</button>
-                </form>
+                <h3 className="text-[13px] font-bold text-slate-700">月別収入推移</h3>
+                <ChartYearSelect currentYear={year} chartYear={chartYear} minYear={2020} />
               </div>
-              {/* カスタムバーチャート（12本） */}
+              {/* カスタムバーチャート（1月〜12月） */}
               {(() => {
                 const maxVal = Math.max(...chartData.map(d => d.収入), 1)
+                const BAR_AREA = 80
                 return (
-                  <div className="flex items-end gap-1 h-16">
+                  <div className="flex items-end gap-0.5" style={{ height: `${BAR_AREA + 16}px` }}>
                     {chartData.map((bar, i) => {
                       const isActive = chartYear === year && i === month - 1
-                      const h = Math.round((bar.収入 / maxVal) * 52) + 4
+                      const barH = bar.収入 > 0
+                        ? Math.max(Math.round((bar.収入 / maxVal) * BAR_AREA), 8)
+                        : 5
                       return (
-                        <div key={bar.month} className="flex flex-col items-center gap-1 flex-1">
+                        <div key={bar.month} className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
                           <div
-                            className={`w-full rounded-t-sm ${isActive ? 'bg-indigo-600' : 'bg-indigo-100'}`}
-                            style={{ height: `${h}px` }}
+                            className={`w-full rounded-t-sm ${
+                              isActive
+                                ? 'bg-indigo-600'
+                                : bar.収入 > 0
+                                  ? 'bg-indigo-300'
+                                  : 'bg-slate-100'
+                            }`}
+                            style={{ height: `${barH}px` }}
                           />
-                          <span className={`text-[9px] ${isActive ? 'text-indigo-600 font-bold' : 'text-slate-400'}`}>
-                            {i + 1}月
+                          <span className={`text-[8px] leading-none ${isActive ? 'text-indigo-600 font-bold' : 'text-slate-400'}`}>
+                            {i + 1}
                           </span>
                         </div>
                       )
