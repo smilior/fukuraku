@@ -4,6 +4,19 @@
 
 ## 今セッションでやったこと
 
+### PCデスクトップレイアウト追加（/ui-ux-pro-max + Agent Team）
+
+Agent Team（eng-1 / eng-2 / eng-3）で並行実装:
+- `bottom-nav.tsx`: `hidden lg:flex` 固定サイドバー追加（ロゴ + 4ナビ + 設定）/ モバイルは `lg:hidden` でボトムタブ継続
+- `dashboard/page.tsx`: `lg:grid-cols-2` 2カラムグリッド / 12ヶ月チャート / `chartYear` searchParam で年切り替えフォーム
+- `income/page.tsx`: カードリスト → `lg:grid-cols-2` グリッド対応
+- `expense/page.tsx`: カードリスト → `lg:grid-cols-2` グリッド対応
+- `summary/page.tsx`: 2カラムレイアウト（バナー+テーブル+ボタン左 / チェックリスト右）
+- `settings/page.tsx`: `lg:pl-60` + BottomNav + ログアウトボタン修正
+- commit: 5da3764 → push済み
+
+---
+
 ### UI全面改修 Phase 2 — モックアップ完全一致修正（/ui-ux-pro-max + Agent Team）
 
 Agent Team（engineer-1 / engineer-2）で並行修正:
@@ -53,7 +66,9 @@ Agent Team（engineer-1 / engineer-2）で並行修正:
 | カード | `bg-white rounded-2xl shadow-sm` |
 | ページ背景 | `bg-[#F8FAFC]` |
 | タブバー余白 | `pb-24` |
-| コンテナ | `max-w-lg mx-auto` |
+| コンテナ（モバイル） | `max-w-lg mx-auto` |
+| コンテナ（PC） | `lg:max-w-5xl lg:px-4` |
+| サイドバー幅 | `lg:pl-60` / サイドバー `w-60` |
 
 ## 環境一覧（確定）
 | 環境 | URL | ブランチ |
@@ -63,7 +78,7 @@ Agent Team（engineer-1 / engineer-2）で並行修正:
 | 本番 | https://fukuraku.smilior.com | main |
 
 ## 次セッションの再開ポイント
-**全 GitHub Issue 完了・UI改修も完了**
+**全 GitHub Issue 完了・UI改修（モバイル＋PC）も完了**
 次の作業はオーナーによる人手タスク（`tasks/todo.md` 参照）
 
 ## 未解決・持ち越し（オーナーアクション必要）
