@@ -49,7 +49,7 @@ export default function OGImage() {
                 <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 7h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2z" />
               </svg>
             </div>
-            <span style={{ fontSize: 30, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>副楽</span>
+            <span style={{ fontSize: 30, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>fukuraku</span>
           </div>
 
           {/* Badge */}

@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: '副楽 — 副業確定申告アプリ',
-    short_name: '副楽',
+    name: 'fukuraku — 副業確定申告アプリ',
+    short_name: 'fukuraku',
     description: '副業の収入・経費をかんたん管理。AIがレシートを自動読み取り、20万円ラインを監視。',
     start_url: '/',
     display: 'standalone',

@@ -19,7 +19,7 @@ export default async function LandingPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 7h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2z" />
             </svg>
           </div>
-          <span className="font-extrabold text-[18px] text-slate-900 tracking-tight">副楽</span>
+          <span className="font-extrabold text-[18px] text-slate-900 tracking-tight">fukuraku</span>
         </Link>
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-6">
@@ -58,7 +58,7 @@ export default async function LandingPage() {
               </h1>
 
               <p className="text-[17px] text-slate-500 leading-relaxed mb-7 max-w-lg mx-auto lg:mx-0 lp-fade-up lp-fade-up-3">
-                freeeは複雑すぎる。副楽は副業の雑所得<em>だけ</em>に特化。<br />
+                freeeは複雑すぎる。fukurakuは副業の雑所得<em>だけ</em>に特化。<br />
                 会計知識ゼロ・3ステップで確定申告が完了します。
               </p>
 
@@ -505,7 +505,7 @@ export default async function LandingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 7h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2z" />
               </svg>
             </div>
-            <span className="text-white font-bold">副楽</span>
+            <span className="text-white font-bold">fukuraku</span>
           </div>
           <div className="flex items-center gap-6 text-[13px]">
             <Link href="/privacy" className="hover:text-white transition-colors">プライバシーポリシー</Link>
@@ -513,7 +513,7 @@ export default async function LandingPage() {
             <Link href="/legal" className="hover:text-white transition-colors">特定商取引法</Link>
             <a href="mailto:fukuraku@smilior.com" className="hover:text-white transition-colors">お問い合わせ</a>
           </div>
-          <p className="text-[12px]">© 2026 副楽. All rights reserved.</p>
+          <p className="text-[12px]">© 2026 fukuraku. All rights reserved.</p>
         </div>
       </footer>
 

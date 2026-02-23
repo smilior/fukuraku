@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '利用規約 | 副楽',
+  title: '利用規約 | fukuraku',
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

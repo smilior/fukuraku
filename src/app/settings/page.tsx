@@ -10,7 +10,7 @@ import BottomNav from '@/components/app/bottom-nav'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '設定 | 副楽',
+  title: '設定 | fukuraku',
 }
 
 export default async function SettingsPage() {

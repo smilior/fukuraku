@@ -115,7 +115,7 @@ export default function BottomNav() {
             <span className="text-white font-extrabold text-[13px]">副</span>
           </div>
           <div>
-            <p className="text-[15px] font-extrabold text-slate-900 leading-tight">副楽</p>
+            <p className="text-[15px] font-extrabold text-slate-900 leading-tight">fukuraku</p>
             <p className="text-[10px] text-slate-400 leading-tight">副業確定申告</p>
           </div>
         </div>

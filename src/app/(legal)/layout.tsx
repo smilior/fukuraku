@@ -12,7 +12,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 7h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2z" />
               </svg>
             </div>
-            <span className="font-bold text-slate-900">副楽</span>
+            <span className="font-bold text-slate-900">fukuraku</span>
           </Link>
         </div>
       </header>
@@ -33,7 +33,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 7h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2z" />
               </svg>
             </div>
-            <span className="text-white font-bold text-sm">副楽</span>
+            <span className="text-white font-bold text-sm">fukuraku</span>
           </div>
           <div className="flex items-center gap-5 text-[13px]">
             <Link href="/privacy" className="hover:text-white transition-colors">プライバシーポリシー</Link>
@@ -41,7 +41,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
             <Link href="/legal" className="hover:text-white transition-colors">特定商取引法</Link>
             <a href="mailto:fukuraku@smilior.com" className="hover:text-white transition-colors">お問い合わせ</a>
           </div>
-          <p className="text-[12px]">© 2026 副楽. All rights reserved.</p>
+          <p className="text-[12px]">© 2026 fukuraku. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -76,7 +76,7 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="text-center space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-green-700">副楽</h1>
+              <h1 className="text-3xl font-bold text-green-700">fukuraku</h1>
               <p className="text-gray-500 text-sm mt-1">ふくらく</p>
             </div>
             <p className="text-xl font-semibold text-gray-800">

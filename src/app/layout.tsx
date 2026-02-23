@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "副楽 | 副業サラリーマンのAI確定申告アプリ",
-    template: "%s | 副楽",
+    default: "fukuraku | 副業サラリーマンのAI確定申告アプリ",
+    template: "%s | fukuraku",
   },
   description:
     "レシートを撮るだけでAIが経費を自動分類。副業サラリーマン専用の確定申告支援アプリ。20万円ラインの自動監視、経費の自動分類で確定申告の準備を3分で完了。",
@@ -29,20 +29,20 @@ export const metadata: Metadata = {
     "20万円",
     "確定申告アプリ",
   ],
-  authors: [{ name: "副楽" }],
-  creator: "副楽",
+  authors: [{ name: "fukuraku" }],
+  creator: "fukuraku",
   openGraph: {
     type: "website",
     locale: "ja_JP",
     url: "https://fukuraku.smilior.com",
-    siteName: "副楽",
-    title: "副楽 | 副業サラリーマンのAI確定申告アプリ",
+    siteName: "fukuraku",
+    title: "fukuraku | 副業サラリーマンのAI確定申告アプリ",
     description:
       "レシートを撮るだけでAIが経費を自動分類。副業サラリーマン専用の確定申告支援アプリ。",
   },
   twitter: {
     card: "summary_large_image",
-    title: "副楽 | 副業サラリーマンのAI確定申告アプリ",
+    title: "fukuraku | 副業サラリーマンのAI確定申告アプリ",
     description:
       "レシートを撮るだけでAIが経費を自動分類。副業サラリーマン専用の確定申告支援アプリ。",
     creator: "@fukuraku_app",

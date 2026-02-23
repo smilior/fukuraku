@@ -30,7 +30,7 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">副楽</CardTitle>
+        <CardTitle className="text-2xl">fukuraku</CardTitle>
         <CardDescription>副業サラリーマンの確定申告をかんたんに</CardDescription>
       </CardHeader>
 
