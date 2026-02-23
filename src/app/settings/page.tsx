@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import ProfileForm from './profile-form'
 import DeleteAccountButton from './delete-account-button'
+import LogoutButton from '../dashboard/logout-button'
+import BottomNav from '@/components/app/bottom-nav'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -32,18 +34,19 @@ export default async function SettingsPage() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 lg:pb-0 lg:pl-60">
       {/* ヘッダー */}
-      <header className="bg-white border-b px-6 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <Link href="/dashboard" className="text-xl font-bold text-green-700">
-            副楽
-          </Link>
-          <span className="text-sm text-gray-500">設定</span>
+      <header className="bg-white border-b border-slate-100 px-5 py-4">
+        <div className="max-w-2xl mx-auto lg:max-w-5xl lg:px-4 flex items-center justify-between">
+          <div>
+            <Link href="/dashboard" className="text-[11px] text-slate-400 hover:text-slate-600">← ダッシュボード</Link>
+            <h2 className="text-[17px] font-bold text-slate-900 mt-0.5">設定</h2>
+          </div>
+          <LogoutButton />
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-2xl mx-auto lg:max-w-2xl px-4 py-8 space-y-8">
         {/* プロフィール */}
         <Card>
           <CardHeader>
@@ -88,6 +91,7 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
       </main>
+      <BottomNav />
     </div>
   )
 }

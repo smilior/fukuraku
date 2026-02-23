@@ -64,10 +64,10 @@ export default async function IncomePage({ searchParams }: PageProps) {
   const monthOptions = generateMonthOptions()
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen pb-24">
+    <div className="bg-[#F8FAFC] min-h-screen pb-24 lg:pb-0 lg:pl-60">
       {/* ヘッダー */}
       <header className="bg-white border-b border-slate-100 px-5 py-4">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-lg mx-auto lg:max-w-5xl lg:px-4 flex items-center justify-between">
           <h2 className="text-[17px] font-bold text-slate-900">収入記録</h2>
           <Link
             href="/income/new"
@@ -82,7 +82,7 @@ export default async function IncomePage({ searchParams }: PageProps) {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto lg:max-w-5xl">
         {/* 月フィルター */}
         <div className="px-4 pt-3">
           <form method="GET" className="flex items-center gap-2">
@@ -134,7 +134,7 @@ export default async function IncomePage({ searchParams }: PageProps) {
             </Link>
           </div>
         ) : (
-          <ul className="space-y-2 px-4 pt-3 pb-6">
+          <ul className="px-4 pt-3 pb-6 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
             {rows.map((income) => (
               <li key={income.id}>
                 <Link href={`/income/${income.id}/edit`}>
