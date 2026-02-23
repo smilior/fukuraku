@@ -11,7 +11,7 @@ export async function POST() {
   }
 
   // Rate limit: 3 attempts per hour per user
-  const { success } = rateLimit(`delete:${user.id}`, { maxRequests: 3, windowMs: 3600_000 })
+  const { success } = await rateLimit(`delete:${user.id}`, { maxRequests: 3, windowMs: 3600_000 })
   if (!success) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }

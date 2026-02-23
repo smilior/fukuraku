@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   }
 
   // Rate limit: 10 requests per minute per user
-  const { success } = rateLimit(`ocr:${user.id}`, { maxRequests: 10, windowMs: 60_000 })
+  const { success } = await rateLimit(`ocr:${user.id}`, { maxRequests: 10, windowMs: 60_000 })
   if (!success) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }

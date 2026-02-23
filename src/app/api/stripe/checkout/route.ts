@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   }
 
   // Rate limit: 5 checkout attempts per minute per user
-  const { success } = rateLimit(`checkout:${user.id}`, { maxRequests: 5, windowMs: 60_000 })
+  const { success } = await rateLimit(`checkout:${user.id}`, { maxRequests: 5, windowMs: 60_000 })
   if (!success) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
