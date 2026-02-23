@@ -1,0 +1,82 @@
+name: Daily X Post Reminder
+
+on:
+  schedule:
+    # 毎朝9時(JST) = UTC 0時に実行
+    - cron: "0 0 * * *"
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  create-post-reminder:
+    name: Create X Post Reminder Issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick random post and create issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # post-templates.md からテンプレートブロックをランダム選択
+          TEMPLATES_FILE="docs/marketing/x/post-templates.md"
+
+          if [ ! -f "$TEMPLATES_FILE" ]; then
+            echo "Post templates file not found"
+            exit 1
+          fi
+
+          # テンプレート番号の一覧を取得（### テンプレートN の行を抽出）
+          TEMPLATE_NUMBERS=$(grep -n "^### テンプレート" "$TEMPLATES_FILE" | cut -d: -f1)
+          TEMPLATE_COUNT=$(echo "$TEMPLATE_NUMBERS" | wc -l | tr -d ' ')
+
+          if [ "$TEMPLATE_COUNT" -eq 0 ]; then
+            echo "No templates found"
+            exit 1
+          fi
+
+          # ランダムに1つ選択
+          RANDOM_INDEX=$(( RANDOM % TEMPLATE_COUNT + 1 ))
+          START_LINE=$(echo "$TEMPLATE_NUMBERS" | sed -n "${RANDOM_INDEX}p")
+
+          # 次のテンプレートの開始行または次の ## セクションの開始行を探す
+          NEXT_SECTION=$(tail -n +"$((START_LINE + 1))" "$TEMPLATES_FILE" | grep -n "^### テンプレート\|^## カテゴリ\|^---$" | head -1 | cut -d: -f1)
+
+          if [ -z "$NEXT_SECTION" ]; then
+            # ファイルの末尾まで
+            POST_CONTENT=$(tail -n +"$START_LINE" "$TEMPLATES_FILE")
+          else
+            END_LINE=$((START_LINE + NEXT_SECTION - 1))
+            POST_CONTENT=$(sed -n "${START_LINE},${END_LINE}p" "$TEMPLATES_FILE")
+          fi
+
+          # 日付を取得
+          TODAY=$(TZ=Asia/Tokyo date +%Y-%m-%d)
+          DAY_OF_WEEK=$(TZ=Asia/Tokyo date +%A)
+
+          # GitHub Issueを作成
+          gh issue create \
+            --title "📱 今日のXポスト案 ${TODAY}" \
+            --label "marketing" \
+            --body "## 今日の投稿案（${TODAY} ${DAY_OF_WEEK}）
+
+以下のテンプレートを参考に、今日のX投稿を作成してください。
+
+${POST_CONTENT}
+
+---
+
+### 投稿チェックリスト
+- [ ] 投稿内容を確認・カスタマイズ
+- [ ] ハッシュタグを確認（1〜2個まで）
+- [ ] 画像やスレッドの準備（任意）
+- [ ] 投稿完了
+
+### 参考
+- [投稿カレンダー](docs/marketing/x/content-calendar.md)
+- [ハッシュタグ戦略](docs/marketing/x/hashtag-strategy.md)
+- [全テンプレート](docs/marketing/x/post-templates.md)"
