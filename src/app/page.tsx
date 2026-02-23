@@ -508,10 +508,10 @@ export default async function LandingPage() {
             <span className="text-white font-bold">副楽</span>
           </div>
           <div className="flex items-center gap-6 text-[13px]">
-            <a href="#" className="hover:text-white transition-colors">プライバシーポリシー</a>
-            <a href="#" className="hover:text-white transition-colors">利用規約</a>
-            <a href="#" className="hover:text-white transition-colors">特定商取引法</a>
-            <a href="#" className="hover:text-white transition-colors">お問い合わせ</a>
+            <Link href="/privacy" className="hover:text-white transition-colors">プライバシーポリシー</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">利用規約</Link>
+            <Link href="/legal" className="hover:text-white transition-colors">特定商取引法</Link>
+            <a href="mailto:fukuraku@smilior.com" className="hover:text-white transition-colors">お問い合わせ</a>
           </div>
           <p className="text-[12px]">© 2026 副楽. All rights reserved.</p>
         </div>

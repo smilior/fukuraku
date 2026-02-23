@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [agreed, setAgreed] = useState(false)
 
   const handleGoogleLogin = async () => {
     setLoading(true)
@@ -36,11 +38,25 @@ export default function LoginPage() {
         {error && (
           <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md mb-4">{error}</p>
         )}
+        <label className="flex items-start gap-2 mb-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+          />
+          <span className="text-xs text-slate-600 leading-relaxed">
+            <Link href="/terms" target="_blank" className="text-indigo-600 hover:underline">利用規約</Link>
+            および
+            <Link href="/privacy" target="_blank" className="text-indigo-600 hover:underline mx-1">プライバシーポリシー</Link>
+            に同意します
+          </span>
+        </label>
         <Button
           variant="outline"
           className="w-full"
           onClick={handleGoogleLogin}
-          disabled={loading}
+          disabled={loading || !agreed}
         >
           {loading ? '移動中...' : (
             <>
