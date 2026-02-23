@@ -10,6 +10,16 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
+  const { data: profile } = await supabase
+    .from('users')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.onboarding_completed) {
+    redirect('/onboarding')
+  }
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">

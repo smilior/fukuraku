@@ -49,6 +49,10 @@ export interface Database {
           plan: Plan
           income_count_year: number
           expense_count_year: number
+          onboarding_completed: boolean
+          side_job_type: string | null
+          side_job_start_year: number | null
+          annual_income_range: string | null
           created_at: string
           updated_at: string
         }
@@ -59,6 +63,10 @@ export interface Database {
           plan?: Plan
           income_count_year?: number
           expense_count_year?: number
+          onboarding_completed?: boolean
+          side_job_type?: string | null
+          side_job_start_year?: number | null
+          annual_income_range?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -67,8 +75,13 @@ export interface Database {
           plan?: Plan
           income_count_year?: number
           expense_count_year?: number
+          onboarding_completed?: boolean
+          side_job_type?: string | null
+          side_job_start_year?: number | null
+          annual_income_range?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       incomes: {
         Row: {
@@ -101,6 +114,7 @@ export interface Database {
           memo?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       expenses: {
         Row: {
@@ -136,6 +150,7 @@ export interface Database {
           receipt_id?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       receipts: {
         Row: {
@@ -170,8 +185,13 @@ export interface Database {
           extracted_vendor?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }
 
