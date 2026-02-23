@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1500">
+  <title>副楽 X ヘッダー画像</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1500px;
+      height: 500px;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    }
+
+    .header {
+      width: 1500px;
+      height: 500px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 100px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 背景の装飾円 */
+    .bg-circle-1 {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: rgba(83, 52, 131, 0.25);
+      top: -100px;
+      right: 200px;
+    }
+    .bg-circle-2 {
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: rgba(15, 52, 96, 0.4);
+      bottom: -80px;
+      left: 350px;
+    }
+    .bg-circle-3 {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.06);
+      top: 60px;
+      right: 480px;
+    }
+
+    .left {
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.85);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 22px;
+    }
+
+    .app-name {
+      font-size: 88px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+
+    .app-name span {
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      font-size: 26px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+    }
+
+    .tagline .highlight {
+      color: #a78bfa;
+    }
+
+    .right {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 16px;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 12px 22px;
+      width: 320px;
+    }
+
+    .feature-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .feature-text {
+      color: rgba(255,255,255,0.88);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="bg-circle-1"></div>
+    <div class="bg-circle-2"></div>
+    <div class="bg-circle-3"></div>
+
+    <div class="left">
+      <div class="badge">副業サラリーマン専用 確定申告アプリ</div>
+      <div class="app-name">副<span>楽</span></div>
+      <div class="tagline">
+        レシートを撮るだけ。<br>
+        <span class="highlight">確定申告の準備が終わる。</span>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="feature">
+        <div class="feature-icon">📷</div>
+        <div class="feature-text">AIレシートOCRで自動分類</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <div class="feature-text">20万円ラインを自動監視</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">✅</div>
+        <div class="feature-text">確定申告書類を自動生成</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
