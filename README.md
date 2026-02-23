@@ -4,7 +4,7 @@
 
 レシートを撮るだけ。20万円超えたら教えます。申告もラクラク。
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16+-black?logo=next.js)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?logo=supabase)](https://supabase.com/)
 [![Stripe](https://img.shields.io/badge/Stripe-Billing-635BFF?logo=stripe)](https://stripe.com/)
 [![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?logo=vercel)](https://vercel.com/)
@@ -40,7 +40,7 @@ freee・マネーフォワードは機能が多すぎて、副業サラリーマ
 ## 技術スタック
 
 ```
-フロントエンド  Next.js 15 (App Router) + shadcn/ui + Tailwind CSS
+フロントエンド  Next.js 16+ (App Router) + shadcn/ui + Tailwind CSS
 バックエンド    Next.js API Routes + Supabase (PostgreSQL + Auth)
 AI             GPT-4o Vision (レシートOCR) + Vercel AI SDK
 決済           Stripe Subscriptions + Webhook
