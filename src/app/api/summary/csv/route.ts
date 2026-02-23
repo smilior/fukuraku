@@ -13,11 +13,16 @@ function calcWithholding(amount: number): number {
   return Math.floor(amount * 0.1021)
 }
 
-/** CSV セルの値をエスケープ（カンマ・改行・ダブルクォートを含む場合は引用） */
+/** CSV セルの値をエスケープ（カンマ・改行・ダブルクォート・数式インジェクション対策） */
 function csvCell(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ''
   const str = String(value)
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+  const needsQuote =
+    str.includes(',') ||
+    str.includes('"') ||
+    str.includes('\n') ||
+    /^[=+@\-]/.test(str)  // Formula injection prevention
+  if (needsQuote) {
     return `"${str.replace(/"/g, '""')}"`
   }
   return str
