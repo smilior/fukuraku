@@ -13,19 +13,50 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "副楽 — 副業サラリーマンの確定申告アプリ",
-  description: "副業の収入・経費をかんたん管理。AIがレシートを自動読み取り、20万円ラインを監視。副業サラリーマン専用の確定申告アプリ。",
+  title: {
+    default: "副楽 | 副業サラリーマンのAI確定申告アプリ",
+    template: "%s | 副楽",
+  },
+  description:
+    "レシートを撮るだけでAIが経費を自動分類。副業サラリーマン専用の確定申告支援アプリ。20万円ラインの自動監視、経費の自動分類で確定申告の準備を3分で完了。",
+  keywords: [
+    "副業",
+    "確定申告",
+    "経費管理",
+    "AI",
+    "レシート",
+    "副業サラリーマン",
+    "20万円",
+    "確定申告アプリ",
+  ],
+  authors: [{ name: "副楽" }],
+  creator: "副楽",
   openGraph: {
-    title: "副楽 — 副業サラリーマンの確定申告アプリ",
-    description: "副業の収入・経費をかんたん管理。AIがレシートを自動読み取り、20万円ラインを監視。",
     type: "website",
     locale: "ja_JP",
+    url: "https://fukuraku.smilior.com",
     siteName: "副楽",
+    title: "副楽 | 副業サラリーマンのAI確定申告アプリ",
+    description:
+      "レシートを撮るだけでAIが経費を自動分類。副業サラリーマン専用の確定申告支援アプリ。",
   },
   twitter: {
     card: "summary_large_image",
-    title: "副楽 — 副業サラリーマンの確定申告アプリ",
-    description: "副業の収入・経費をかんたん管理。AIがレシートを自動読み取り、20万円ラインを監視。",
+    title: "副楽 | 副業サラリーマンのAI確定申告アプリ",
+    description:
+      "レシートを撮るだけでAIが経費を自動分類。副業サラリーマン専用の確定申告支援アプリ。",
+    creator: "@fukuraku_app",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
