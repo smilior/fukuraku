@@ -18,4 +18,4 @@ jobs:
 
       - name: Push main to staging
         run: |
-          git push origin main:staging
+          git push origin main:staging --force
