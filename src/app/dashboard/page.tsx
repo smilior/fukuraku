@@ -3,18 +3,13 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BottomNav from '@/components/app/bottom-nav'
 import ChartYearSelect from '@/components/app/chart-year-select'
+import DashboardChart from '@/components/app/dashboard-chart-dynamic'
+import NotificationPopover from '@/components/app/notification-popover'
+import { formatCurrency, formatDateJP } from '@/lib/format'
+import { generateNotifications } from '@/lib/notifications'
 import type { IncomeRow, ExpenseRow } from '@/types/database'
 
 const THRESHOLD = 200_000
-
-function formatCurrency(amount: number): string {
-  return `¥${amount.toLocaleString('ja-JP')}`
-}
-
-function formatDateJP(dateStr: string): string {
-  const [, month, day] = dateStr.split('-')
-  return `${Number(month)}月${Number(day)}日`
-}
 
 interface PageProps {
   searchParams: Promise<{ chartYear?: string }>
@@ -125,6 +120,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   if (now > deadline) deadline = new Date(now.getFullYear() + 1, 2, 15)
   const daysUntilDeadline = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
+  // 通知生成
+  const notifications = generateNotifications(annualNet)
+
   return (
     <div className="bg-[#F8FAFC] min-h-screen lg:pl-60">
       {/* ヘッダー */}
@@ -136,12 +134,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           </div>
           <div className="flex items-center gap-2.5">
             {/* 通知ベル */}
-            <button className="relative flex items-center justify-center w-9 h-9 bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer" aria-label="通知">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-              </svg>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-            </button>
+            <NotificationPopover notifications={notifications} />
             {/* イニシャルアバター */}
             <div className="flex items-center justify-center w-9 h-9 bg-indigo-100 rounded-full text-indigo-600 font-bold text-[13px]">
               {initials}
@@ -244,38 +237,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                 <h3 className="text-[13px] font-bold text-slate-700">月別収入推移</h3>
                 <ChartYearSelect currentYear={year} chartYear={chartYear} minYear={2020} />
               </div>
-              {/* カスタムバーチャート（1月〜12月） */}
-              {(() => {
-                const maxVal = Math.max(...chartData.map(d => d.収入), 1)
-                const BAR_AREA = 80
-                return (
-                  <div className="flex items-end gap-0.5" style={{ height: `${BAR_AREA + 16}px` }}>
-                    {chartData.map((bar, i) => {
-                      const isActive = chartYear === year && i === month - 1
-                      const barH = bar.収入 > 0
-                        ? Math.max(Math.round((bar.収入 / maxVal) * BAR_AREA), 8)
-                        : 5
-                      return (
-                        <div key={bar.month} className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
-                          <div
-                            className={`w-full rounded-t-sm ${
-                              isActive
-                                ? 'bg-indigo-600'
-                                : bar.収入 > 0
-                                  ? 'bg-indigo-300'
-                                  : 'bg-slate-100'
-                            }`}
-                            style={{ height: `${barH}px` }}
-                          />
-                          <span className={`text-[8px] leading-none ${isActive ? 'text-indigo-600 font-bold' : 'text-slate-400'}`}>
-                            {i + 1}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )
-              })()}
+              <DashboardChart data={chartData} year={chartYear} />
             </div>
 
             {/* 最近の取引 */}

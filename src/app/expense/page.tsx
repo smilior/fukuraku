@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BottomNav from '@/components/app/bottom-nav'
+import MonthSelect from '@/components/app/month-select'
+import { formatCurrency, formatDateJP } from '@/lib/format'
 import type { ExpenseRow, ExpenseCategory } from '@/types/database'
 
 const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
@@ -18,15 +20,6 @@ const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
 
 interface PageProps {
   searchParams: Promise<{ month?: string }>
-}
-
-function formatCurrency(amount: number): string {
-  return `¥${amount.toLocaleString('ja-JP')}`
-}
-
-function formatDateJP(dateStr: string): string {
-  const [, month, day] = dateStr.split('-')
-  return `${Number(month)}月${Number(day)}日`
 }
 
 export default async function ExpensePage({ searchParams }: PageProps) {
@@ -61,15 +54,6 @@ export default async function ExpensePage({ searchParams }: PageProps) {
 
   const rows: ExpenseRow[] = (expensesData as ExpenseRow[] | null) ?? []
   const total = rows.reduce((sum, e) => sum + e.amount, 0)
-
-  const monthOptions: { value: string; label: string }[] = []
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = `${d.getFullYear()}年${d.getMonth() + 1}月`
-    monthOptions.push({ value, label })
-  }
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-24 lg:pb-0 lg:pl-60">
@@ -110,30 +94,13 @@ export default async function ExpensePage({ searchParams }: PageProps) {
         </div>
 
         {/* 月フィルター */}
-        <div className="px-4 pt-3">
-          <form method="GET" className="flex items-center gap-2">
-            <select
-              name="month"
-              defaultValue={month ?? ''}
-              className="flex-1 h-9 rounded-xl border border-slate-200 bg-white px-3 text-[13px] text-slate-700 shadow-sm focus:outline-none focus:border-indigo-400"
-            >
-              <option value="">すべての期間</option>
-              {monthOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="h-9 px-4 bg-indigo-600 text-white text-[13px] font-semibold rounded-xl"
-            >
-              絞り込む
-            </button>
-            {month && (
-              <Link href="/expense" className="h-9 px-3 flex items-center text-[13px] text-slate-500 border border-slate-200 rounded-xl bg-white">
-                クリア
-              </Link>
-            )}
-          </form>
+        <div className="px-4 pt-3 flex items-center gap-2">
+          <MonthSelect basePath="/expense" currentMonth={month} />
+          {month && (
+            <Link href="/expense" className="h-9 px-3 flex items-center text-[13px] text-slate-500 border border-slate-200 rounded-xl bg-white">
+              クリア
+            </Link>
+          )}
         </div>
 
         {/* オレンジバナー */}

@@ -6,13 +6,10 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import BottomNav from '@/components/app/bottom-nav'
 import FilingChecklist from '@/components/app/filing-checklist'
+import { formatCurrency } from '@/lib/format'
 import type { IncomeRow, ExpenseRow } from '@/types/database'
 
 const FILING_THRESHOLD = 200_000
-
-function formatCurrency(amount: number): string {
-  return `¥${amount.toLocaleString('ja-JP')}`
-}
 
 interface PageProps {
   searchParams: Promise<{ year?: string }>
