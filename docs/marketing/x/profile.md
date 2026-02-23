@@ -38,7 +38,7 @@ Next.js / Supabase / AI SDK
 そう思って3ヶ月。
 レシート撮るだけで確定申告の準備が終わるアプリが完成しました。
 
-副楽 → https://fukuraku.vercel.app
+副楽 → https://fukuraku.smilior.com
 ```
 
 ## チェックリスト
