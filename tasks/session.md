@@ -4,26 +4,23 @@
 
 ## 今セッションでやったこと
 
-### Issue #15 利用規約・プライバシーポリシー・特商法表示
-- `src/app/(legal)/layout.tsx` 新規作成
-- `src/app/(legal)/privacy/page.tsx`・`terms/page.tsx`・`legal/page.tsx` 新規作成
-- LP フッターリンク実パスへ変更・ログイン画面に同意チェックボックス追加
+### UI全面改修 — モバイルファーストのモックアップ忠実実装
 
-### fukuraku-sprint チーム（engineer + marketer）による全 Issue 一括完了
+`docs/mockups/app.html` に忠実なデザインへ全面書き直し。
 
-| Issue | 内容 | 担当 |
-|-------|------|------|
-| #25 | RLS・DB最適化（アカウント削除バグ修正・インデックス追加） | engineer |
-| #19 | セキュリティ強化（CSP/HSTS・middleware.ts・レート制限） | engineer |
-| #18 | UX改善・AI精度（OCRプロンプト強化・ナビゲーション改善） | engineer |
-| #17 | バグ修正（オープンリダイレクト脆弱性・Webhook nullチェック） | engineer |
-| #22 | 最終テスト（Lighthouse CI・monitoring.ts・本番チェックリスト） | engineer |
-| #16 | ベータテスター募集（投稿文・フォーム設計・メールテンプレート） | marketer |
-| #20 | SEO（sitemap.ts・robots.ts・メタデータ強化・ブログ2本） | marketer |
-| #21 | X運用（4週間カレンダー・テンプレート26件・ハッシュタグ戦略） | marketer |
-| #33 | Note記事3本（計7,500字） | marketer |
-| #24 | GitHub Actions CRON（毎朝9時JST 自動Issue作成） | marketer |
-| #23 | リリース準備（Product Hunt・PR TIMES・Zenn・CHANGELOG） | marketer |
+| ファイル | 変更内容 |
+|---------|---------|
+| `src/app/globals.css` | app-bar-animate / app-pulse-ring / app-check-pop アニメーション追加 |
+| `src/components/app/bottom-nav.tsx` | 新規：ボトムタブバー（ホーム/収入/+FAB/経費/申告書） |
+| `src/components/app/filing-checklist.tsx` | 新規：申告チェックリスト（5項目・チェックアニメ） |
+| `src/app/dashboard/page.tsx` | 完全書き直し（インディゴ/エメラルド/オレンジ体系） |
+| `src/app/dashboard/yearly-chart.tsx` | indigo-600 / orange-500 に色変更 |
+| `src/app/income/page.tsx` | エメラルドバナー・カードリスト・BottomNav |
+| `src/app/expense/page.tsx` | OCRグラデーションボタン・オレンジバナー・カードリスト・BottomNav |
+| `src/app/summary/page.tsx` | 概算税額行・FilingChecklist・e-Taxボタン・BottomNav |
+
+- `bunx tsc --noEmit` → エラーなし
+- commit & push 済み（main: c2c32c5）
 
 ## 重要な技術メモ（前セッションから継続）
 - AI SDK v6: `experimental_output: Output.object()` → `result.experimental_output` でアクセス
@@ -33,6 +30,19 @@
 - PWAアイコン: `public/icons/icon-192.png` / `icon-512.png`（本番前に正式デザインへ差し替え）
 - OGP画像: `src/app/opengraph-image.tsx`
 - LP: `src/app/page.tsx`
+- `IncomeRow` に `withholding_tax` フィールドはない（category で代替）
+
+## デザイントークン（確定）
+| 用途 | クラス |
+|-----|-------|
+| プライマリ | `indigo-600` |
+| 収入 | `emerald-600` / `emerald-50` |
+| 経費 | `orange-500` / `orange-50` |
+| アラート | `red-500` / `red-50` |
+| カード | `bg-white rounded-2xl shadow-sm` |
+| ページ背景 | `bg-[#F8FAFC]` |
+| タブバー余白 | `pb-24` |
+| コンテナ | `max-w-lg mx-auto` |
 
 ## 環境一覧（確定）
 | 環境 | URL | ブランチ |
@@ -42,7 +52,7 @@
 | 本番 | https://fukuraku.smilior.com | main |
 
 ## 次セッションの再開ポイント
-**全 GitHub Issue 完了・クローズ済み**
+**全 GitHub Issue 完了・UI改修も完了**
 次の作業はオーナーによる人手タスク（`tasks/todo.md` 参照）
 
 ## 未解決・持ち越し（オーナーアクション必要）
