@@ -57,12 +57,16 @@
 
 ## Task Management
 
-1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
-2. **Verify Plan**: Check in before starting implementation
-3. **Track Progress**: Mark items complete as you go
-4. **Explain Changes**: High-level summary at each step
-5. **Document Results**: Add review section to `tasks/todo.md`
-6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
+作業単位は **GitHub Issues**（smilior/fukuraku）で管理する。
+優先順位は **Milestoneの順番**に従う（`gh api repos/smilior/fukuraku/milestones` で確認）。
+
+1. **Milestone確認**: 現在のMilestoneのIssueを優先して着手する
+2. **依存関係確認**: Issueの依存順序を考慮してから着手する（基盤→機能→UIの順）
+3. **Issue起点**: 作業開始前に `gh issue view <番号>` でIssueの内容を確認する
+4. **Plan First**: 非自明なタスクはplanモードで設計してからImplement
+5. **Track Progress**: 作業完了後にIssueをcloseし、`memory/MEMORY.md` の「次のIssue」を更新
+6. **Capture Lessons**: 修正を受けたら `tasks/lessons.md` に記録
+7. `tasks/todo.md` は「現在進行中のIssue」と「セッションメモ」のみ記載（Issueと重複管理しない）
 
 ---
 
