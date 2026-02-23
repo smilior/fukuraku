@@ -23,6 +23,20 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient()
 
+  // Idempotency check: skip already-processed events
+  const { data: existing } = await supabase
+    .from('stripe_webhook_events')
+    .select('id')
+    .eq('id', event.id)
+    .single()
+
+  if (existing) {
+    return NextResponse.json({ received: true })
+  }
+
+  // Record event before processing to prevent duplicates
+  await supabase.from('stripe_webhook_events').insert({ id: event.id })
+
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session

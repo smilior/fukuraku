@@ -190,6 +190,20 @@ export interface Database {
         }
         Relationships: []
       }
+      stripe_webhook_events: {
+        Row: {
+          id: string
+          processed_at: string
+        }
+        Insert: {
+          id: string
+          processed_at?: string
+        }
+        Update: {
+          processed_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
