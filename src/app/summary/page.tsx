@@ -4,56 +4,14 @@
  */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import type { IncomeRow, ExpenseRow, IncomeCategory, ExpenseCategory } from '@/types/database'
+import BottomNav from '@/components/app/bottom-nav'
+import FilingChecklist from '@/components/app/filing-checklist'
+import type { IncomeRow, ExpenseRow } from '@/types/database'
 
-const INCOME_CATEGORIES: IncomeCategory[] = [
-  'フリーランス',
-  'アフィリエイト',
-  '転売・せどり',
-  'YouTube・動画',
-  '株・投資',
-  '不動産',
-  'その他',
-]
-
-const EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  '通信費',
-  '消耗品費',
-  '接待交際費',
-  '交通費',
-  '広告宣伝費',
-  '外注費',
-  '研修費',
-  '地代家賃',
-  'その他',
-]
-
-const FILING_THRESHOLD = 200_000 // 20万円
+const FILING_THRESHOLD = 200_000
 
 function formatCurrency(amount: number): string {
   return `¥${amount.toLocaleString('ja-JP')}`
-}
-
-/** 源泉徴収額を計算（10.21%） */
-function calcWithholding(amount: number): number {
-  return Math.floor(amount * 0.1021)
 }
 
 interface PageProps {
@@ -62,15 +20,12 @@ interface PageProps {
 
 export default async function SummaryPage({ searchParams }: PageProps) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     redirect('/login')
   }
 
-  // 年度パラメータ（デフォルト: 当年）
   const params = await searchParams
   const currentYear = new Date().getFullYear()
   const selectedYear = (() => {
@@ -81,287 +36,128 @@ export default async function SummaryPage({ searchParams }: PageProps) {
   const yearStart = `${selectedYear}-01-01`
   const yearEnd = `${selectedYear}-12-31`
 
-  // 収入・経費を並行取得
   const [{ data: incomeData }, { data: expenseData }] = await Promise.all([
-    supabase
-      .from('incomes')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('date', yearStart)
-      .lte('date', yearEnd)
-      .order('date', { ascending: true }),
-    supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('date', yearStart)
-      .lte('date', yearEnd)
-      .order('date', { ascending: true }),
+    supabase.from('incomes').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd),
+    supabase.from('expenses').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd),
   ])
 
   const incomes = (incomeData ?? []) as IncomeRow[]
   const expenses = (expenseData ?? []) as ExpenseRow[]
 
-  // 年間集計
   const totalIncome = incomes.reduce((s, r) => s + r.amount, 0)
   const totalExpense = expenses.reduce((s, r) => s + r.amount, 0)
   const netIncome = totalIncome - totalExpense
-  const totalWithholding = incomes.reduce(
-    (s, r) => s + calcWithholding(r.amount),
-    0
-  )
-
-  // 申告要否
+  const estimatedTax = Math.round(netIncome * 0.2)
   const needsFiling = netIncome > FILING_THRESHOLD
 
-  // カテゴリ別集計（収入）
-  const incomeByCat = INCOME_CATEGORIES.map((cat) => {
-    const rows = incomes.filter((r) => r.category === cat)
-    return {
-      category: cat,
-      count: rows.length,
-      total: rows.reduce((s, r) => s + r.amount, 0),
-    }
-  }).filter((c) => c.count > 0)
-
-  // カテゴリ別集計（経費）
-  const expenseByCat = EXPENSE_CATEGORIES.map((cat) => {
-    const rows = expenses.filter((r) => r.category === cat)
-    return {
-      category: cat,
-      count: rows.length,
-      total: rows.reduce((s, r) => s + r.amount, 0),
-    }
-  }).filter((c) => c.count > 0)
-
-  // セレクト用年リスト（2015 〜 当年）
-  const yearOptions = Array.from(
-    { length: currentYear - 2015 + 1 },
-    (_, i) => currentYear - i
-  )
+  const yearOptions = Array.from({ length: currentYear - 2015 + 1 }, (_, i) => currentYear - i)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-[#F8FAFC] min-h-screen pb-24">
       {/* ヘッダー */}
-      <header className="bg-white border-b px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/dashboard" className="text-xl font-bold text-green-700">
-            副楽
-          </Link>
-          <span className="text-sm text-gray-500">確定申告サマリー</span>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-        {/* 年度切り替え */}
-        <div className="flex items-center gap-3">
+      <header className="bg-white border-b border-slate-100 px-5 py-4">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <h2 className="text-[17px] font-bold text-slate-900">確定申告サマリー</h2>
+          {/* 年度切り替え */}
           <form method="GET" className="flex items-center gap-2">
-            <label htmlFor="year-select" className="text-sm font-medium text-gray-700">
-              申告年度
-            </label>
             <select
-              id="year-select"
               name="year"
               defaultValue={selectedYear}
-              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white shadow-xs focus:outline-none focus:ring-2 focus:ring-green-500"
-              onChange={undefined}
+              className="h-8 rounded-xl border border-slate-200 bg-white px-2 text-[13px] text-slate-700 focus:outline-none focus:border-indigo-400"
             >
               {yearOptions.map((y) => (
-                <option key={y} value={y}>
-                  {y}年
-                </option>
+                <option key={y} value={y}>{y}年</option>
               ))}
             </select>
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 h-8 px-3 transition-colors"
+              className="h-8 px-3 bg-indigo-600 text-white text-[12px] font-semibold rounded-xl"
             >
               表示
             </button>
           </form>
         </div>
+      </header>
 
+      <div className="max-w-lg mx-auto px-4 pt-3 space-y-3">
         {/* 申告要否バナー */}
         <div
-          className={`rounded-lg px-5 py-4 font-semibold text-sm ${
+          className={`rounded-2xl px-4 py-3 text-[13px] font-semibold ${
             needsFiling
-              ? 'bg-red-50 border border-red-200 text-red-700'
-              : 'bg-green-50 border border-green-200 text-green-700'
+              ? 'bg-red-50 border border-red-100 text-red-700'
+              : 'bg-emerald-50 border border-emerald-100 text-emerald-700'
           }`}
           role="alert"
         >
-          {needsFiling ? (
-            <span>確定申告が必要です（{selectedYear}年の所得: {formatCurrency(netIncome)}）</span>
-          ) : (
-            <span>確定申告は不要です（20万円以下）（{selectedYear}年の所得: {formatCurrency(netIncome)}）</span>
-          )}
+          {needsFiling
+            ? `⚠️ 確定申告が必要です（${selectedYear}年の所得: ${formatCurrency(netIncome)}）`
+            : `✓ 確定申告は不要です（20万円以下）（${selectedYear}年の所得: ${formatCurrency(netIncome)}）`}
         </div>
 
-        {/* 年間サマリーカード 3枚 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-gray-500">総収入</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-green-600">
-                {formatCurrency(totalIncome)}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">{incomes.length}件</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-gray-500">総経費</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-red-500">
-                {formatCurrency(totalExpense)}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">{expenses.length}件</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-gray-500">差引所得</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p
-                className={`text-2xl font-bold ${
-                  netIncome >= 0 ? 'text-gray-800' : 'text-red-500'
-                }`}
-              >
-                {formatCurrency(netIncome)}
-              </p>
-              <p
-                className={`text-xs mt-1 ${
-                  needsFiling ? 'text-red-400' : 'text-gray-400'
-                }`}
-              >
-                {needsFiling ? '申告要' : '申告不要'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 源泉徴収合計 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">源泉徴収合計</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-blue-600">
-                {formatCurrency(totalWithholding)}
-              </span>
-              <span className="text-sm text-gray-500">
-                （各収入 × 10.21% の合計）
-              </span>
+        {/* 収支サマリーテーブル */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+            <span className="text-[12px] font-bold text-slate-500 uppercase tracking-wide">収支サマリー</span>
+          </div>
+          {/* 副業収入 */}
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-50">
+            <span className="text-[13px] text-slate-600">副業収入（総額）</span>
+            <span className="text-[15px] font-bold text-slate-900">{formatCurrency(totalIncome)}</span>
+          </div>
+          {/* 経費合計 */}
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-50">
+            <span className="text-[13px] text-slate-600">経費合計</span>
+            <span className="text-[15px] font-bold text-orange-600">−{formatCurrency(totalExpense)}</span>
+          </div>
+          {/* 雑所得 */}
+          <div className="flex items-center justify-between px-4 py-3.5 bg-slate-50 border-b border-slate-100">
+            <span className="text-[13px] font-semibold text-slate-700">雑所得（課税所得）</span>
+            <span className="text-[15px] font-extrabold text-indigo-600">{formatCurrency(netIncome)}</span>
+          </div>
+          {/* 概算税額 */}
+          <div className="flex items-center justify-between px-4 py-3.5">
+            <div>
+              <span className="text-[13px] font-semibold text-slate-700">概算税額</span>
+              <span className="text-[11px] text-slate-400 ml-1">（所得税 20%）</span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* カテゴリ別収入テーブル */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">カテゴリ別収入</CardTitle>
-          </CardHeader>
-          <CardContent className="px-0">
-            {incomeByCat.length === 0 ? (
-              <p className="text-sm text-gray-400 py-4 text-center px-6">
-                {selectedYear}年の収入データがありません
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-6">カテゴリ</TableHead>
-                    <TableHead className="text-right">件数</TableHead>
-                    <TableHead className="text-right pr-6">金額合計</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {incomeByCat.map((row) => (
-                    <TableRow key={row.category}>
-                      <TableCell className="pl-6">{row.category}</TableCell>
-                      <TableCell className="text-right">{row.count}件</TableCell>
-                      <TableCell className="text-right pr-6 text-green-600 font-medium">
-                        {formatCurrency(row.total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TableCell className="pl-6 font-semibold">合計</TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {incomes.length}件
-                    </TableCell>
-                    <TableCell className="text-right pr-6 font-semibold text-green-600">
-                      {formatCurrency(totalIncome)}
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* カテゴリ別経費テーブル */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">カテゴリ別経費</CardTitle>
-          </CardHeader>
-          <CardContent className="px-0">
-            {expenseByCat.length === 0 ? (
-              <p className="text-sm text-gray-400 py-4 text-center px-6">
-                {selectedYear}年の経費データがありません
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-6">カテゴリ</TableHead>
-                    <TableHead className="text-right">件数</TableHead>
-                    <TableHead className="text-right pr-6">金額合計</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {expenseByCat.map((row) => (
-                    <TableRow key={row.category}>
-                      <TableCell className="pl-6">{row.category}</TableCell>
-                      <TableCell className="text-right">{row.count}件</TableCell>
-                      <TableCell className="text-right pr-6 text-red-500 font-medium">
-                        {formatCurrency(row.total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TableCell className="pl-6 font-semibold">合計</TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {expenses.length}件
-                    </TableCell>
-                    <TableCell className="text-right pr-6 font-semibold text-red-500">
-                      {formatCurrency(totalExpense)}
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* CSV ダウンロード */}
-        <div className="flex justify-end pb-6">
-          <Button asChild variant="outline" size="lg">
-            <a href={`/api/summary/csv?year=${selectedYear}`} download>
-              CSV ダウンロード（{selectedYear}年）
-            </a>
-          </Button>
+            <span className="text-[15px] font-extrabold text-red-600">{formatCurrency(estimatedTax)}</span>
+          </div>
         </div>
-      </main>
+
+        {/* チェックリスト */}
+        <FilingChecklist />
+
+        {/* ボタン */}
+        <div className="space-y-2.5 pb-6">
+          <a
+            href={`/api/summary/csv?year=${selectedYear}`}
+            download
+            className="flex items-center justify-center w-full bg-indigo-600 text-white font-bold text-[15px] py-4 rounded-2xl shadow-lg shadow-indigo-200"
+          >
+            <svg className="mr-2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            CSV ダウンロード（{selectedYear}年）
+          </a>
+          <a
+            href="https://www.e-tax.nta.go.jp/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-full bg-emerald-600 text-white font-bold text-[15px] py-4 rounded-2xl shadow-lg shadow-emerald-200"
+          >
+            <svg className="mr-2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+            e-Tax で申告する
+          </a>
+        </div>
+      </div>
+
+      <BottomNav />
     </div>
   )
 }

@@ -189,3 +189,44 @@
     transform: none;
   }
 }
+
+/* ── App custom animations ── */
+
+@keyframes app-bar-in {
+  from { width: 0; }
+}
+.app-bar-animate {
+  animation: app-bar-in 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes app-pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.app-pulse-ring { position: relative; }
+.app-pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.4);
+  animation: app-pulse-ring 1.5s ease-out infinite;
+}
+
+@keyframes app-check-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  70%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.app-check-pop {
+  animation: app-check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bar-animate, .app-pulse-ring::after, .app-check-pop {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    width: auto;
+  }
+}

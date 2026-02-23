@@ -1,16 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import LogoutButton from './logout-button'
 import YearlyChart from './yearly-chart'
+import BottomNav from '@/components/app/bottom-nav'
 import type { IncomeRow, ExpenseRow } from '@/types/database'
 
-const THRESHOLD = 200_000 // 20万円ライン
+const THRESHOLD = 200_000
 
 function formatCurrency(amount: number): string {
   return `¥${amount.toLocaleString('ja-JP')}`
+}
+
+function formatDateJP(dateStr: string): string {
+  const [, month, day] = dateStr.split('-')
+  return `${Number(month)}月${Number(day)}日`
 }
 
 export default async function DashboardPage() {
@@ -37,52 +40,29 @@ export default async function DashboardPage() {
   const yearStart = `${year}-01-01`
   const yearEnd = `${year}-12-31`
   const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
-  const nextMonth = new Date(year, month, 1)
-  const monthEnd = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-01`
+  const nextMonthDate = new Date(year, month, 1)
+  const monthEnd = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-01`
 
-  // 並行データ取得
   const [
     { data: incomeData },
     { data: expenseData },
     { data: recentIncomes },
     { data: recentExpenses },
   ] = await Promise.all([
-    supabase
-      .from('incomes')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('date', yearStart)
-      .lte('date', yearEnd),
-    supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('date', yearStart)
-      .lte('date', yearEnd),
-    supabase
-      .from('incomes')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .limit(5),
-    supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .limit(5),
+    supabase.from('incomes').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd),
+    supabase.from('expenses').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd),
+    supabase.from('incomes').select('*').eq('user_id', user.id).order('date', { ascending: false }).limit(5),
+    supabase.from('expenses').select('*').eq('user_id', user.id).order('date', { ascending: false }).limit(5),
   ])
 
   const incomes = (incomeData ?? []) as IncomeRow[]
   const expenses = (expenseData ?? []) as ExpenseRow[]
 
-  // 年間集計
   const annualIncome = incomes.reduce((s, r) => s + r.amount, 0)
   const annualExpense = expenses.reduce((s, r) => s + r.amount, 0)
   const annualNet = annualIncome - annualExpense
   const progressPct = Math.min(Math.round((annualNet / THRESHOLD) * 100), 100)
 
-  // 今月集計
   const monthlyIncome = incomes
     .filter(r => r.date >= monthStart && r.date < monthEnd)
     .reduce((s, r) => s + r.amount, 0)
@@ -90,7 +70,7 @@ export default async function DashboardPage() {
     .filter(r => r.date >= monthStart && r.date < monthEnd)
     .reduce((s, r) => s + r.amount, 0)
 
-  // 月別グラフデータ（1〜12月）
+  // 月別グラフデータ（直近6ヶ月）
   const chartData = Array.from({ length: 12 }, (_, i) => {
     const m = String(i + 1).padStart(2, '0')
     const prefix = `${year}-${m}`
@@ -100,195 +80,182 @@ export default async function DashboardPage() {
       経費: expenses.filter(r => r.date.startsWith(prefix)).reduce((s, r) => s + r.amount, 0),
     }
   })
+  const recentChartData = chartData.slice(-6)
 
   // 直近取引（収入・経費を合算して日付降順 top5）
   const recent = [
     ...((recentIncomes ?? []) as IncomeRow[]).map(r => ({
-      id: r.id, type: 'income' as const, date: r.date,
-      label: r.source, amount: r.amount,
+      id: r.id, type: 'income' as const, date: r.date, label: r.source, amount: r.amount,
     })),
     ...((recentExpenses ?? []) as ExpenseRow[]).map(r => ({
-      id: r.id, type: 'expense' as const, date: r.date,
-      label: r.description, amount: r.amount,
+      id: r.id, type: 'expense' as const, date: r.date, label: r.description, amount: r.amount,
     })),
   ]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 5)
 
-  const displayName = profile?.display_name ?? user.email
+  const displayName = profile?.display_name ?? user.email ?? 'ユーザー'
+  const initials = displayName.slice(0, 2).toUpperCase()
+
+  // 3月15日までの日数
+  let deadline = new Date(now.getFullYear(), 2, 15)
+  if (now > deadline) deadline = new Date(now.getFullYear() + 1, 2, 15)
+  const daysUntilDeadline = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-[#F8FAFC] min-h-screen">
       {/* ヘッダー */}
-      <header className="bg-white border-b px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-green-700">副楽</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{displayName}</span>
-            <LogoutButton />
+      <header className="bg-white border-b border-slate-100 px-5 py-4">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <div>
+            <p className="text-[11px] text-slate-400">こんにちは</p>
+            <h1 className="text-[17px] font-bold text-slate-900">{displayName} さん</h1>
+          </div>
+          <div className="flex items-center gap-2.5">
+            {/* 通知ベル */}
+            <button className="relative flex items-center justify-center w-9 h-9 bg-slate-100 rounded-full text-slate-500" aria-label="通知">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+            </button>
+            {/* イニシャルアバター */}
+            <div className="flex items-center justify-center w-9 h-9 bg-indigo-100 rounded-full text-indigo-600 font-bold text-[13px]">
+              {initials}
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-        {/* 20万円バー */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex justify-between items-center">
-              <span>年間所得の進捗</span>
-              <span className="text-sm font-normal text-gray-500">
-                {formatCurrency(annualNet)} / 20万円
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Progress value={progressPct} className="h-3" />
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>0円</span>
-              <span className={annualNet >= THRESHOLD ? 'text-red-500 font-medium' : ''}>
-                {progressPct}%
-                {annualNet >= THRESHOLD && '  ⚠️ 申告が必要です'}
-              </span>
-              <span>20万円</span>
+      <main className="max-w-lg mx-auto px-4 pt-3 pb-24 space-y-3">
+        {/* 20万円カード */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-red-100 overflow-hidden relative">
+          <div className="absolute -top-8 -right-8 w-32 h-32 bg-red-50 rounded-full opacity-60 pointer-events-none" />
+          <div className="absolute -bottom-6 -right-2 w-20 h-20 bg-orange-50 rounded-full opacity-40 pointer-events-none" />
+
+          <div className="flex items-start justify-between mb-3 relative">
+            <div>
+              <p className="text-[11px] text-slate-400">{year}年 副業所得（累計）</p>
+              <p className="text-[32px] font-extrabold text-slate-900 leading-tight">{formatCurrency(annualNet)}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* 今月の収支カード */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-gray-500">今月の収入</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(monthlyIncome)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-gray-500">今月の経費</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-red-500">{formatCurrency(monthlyExpense)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm text-gray-500">今月の差引所得</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className={`text-2xl font-bold ${monthlyIncome - monthlyExpense >= 0 ? 'text-gray-800' : 'text-red-500'}`}>
-                {formatCurrency(monthlyIncome - monthlyExpense)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 年間推移グラフ */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{year}年 月別収支</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <YearlyChart data={chartData} />
-          </CardContent>
-        </Card>
-
-        {/* 直近の取引 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">直近の取引</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recent.length === 0 ? (
-              <p className="text-sm text-gray-400 py-4 text-center">取引記録がありません</p>
-            ) : (
-              <ul className="divide-y">
-                {recent.map(tx => (
-                  <li key={`${tx.type}-${tx.id}`} className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        tx.type === 'income'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-600'
-                      }`}>
-                        {tx.type === 'income' ? '収入' : '経費'}
-                      </span>
-                      <span className="text-sm">{tx.label}</span>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-medium ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}>
-                        {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                      </p>
-                      <p className="text-xs text-gray-400">{tx.date}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            {annualNet >= THRESHOLD && (
+              <div className="app-pulse-ring bg-red-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shrink-0">
+                確定申告が必要！
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* クイックアクション */}
-        <div className="grid grid-cols-3 gap-3">
-          <Link href="/income/new" className="block">
-            <Card className="hover:bg-green-50 transition-colors cursor-pointer">
-              <CardContent className="pt-4 text-center">
-                <div className="text-2xl mb-1">💰</div>
-                <p className="text-sm font-medium">+ 収入</p>
-              </CardContent>
-            </Card>
+          {/* グラデーションバー */}
+          <div className="relative">
+            <div className="flex justify-between text-[11px] text-slate-400 mb-1.5">
+              <span>¥0</span>
+              <span className="font-semibold text-slate-600">¥200,000（確定申告ライン）</span>
+            </div>
+            <div className="bg-slate-100 rounded-full h-5 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-400 to-red-500 app-bar-animate flex items-center justify-end pr-2"
+                style={{ width: `${Math.max(progressPct, 4)}%` }}
+              >
+                <span className="text-white text-[11px] font-bold">{progressPct}%</span>
+              </div>
+            </div>
+            <div className="flex justify-between text-[10px] mt-1.5">
+              <span className="text-slate-400">収入 {formatCurrency(annualIncome)} − 経費 {formatCurrency(annualExpense)}</span>
+              <span className="text-red-500 font-semibold">あと{formatCurrency(Math.max(0, THRESHOLD - annualNet))} で上限</span>
+            </div>
+          </div>
+
+          {/* Tipボックス */}
+          <div className="mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-start gap-2">
+            <svg className="text-red-500 shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <p className="text-[11px] text-red-600 font-medium">
+              3月15日（確定申告期限）まであと <strong>{daysUntilDeadline}日</strong> です
+            </p>
+          </div>
+        </div>
+
+        {/* 2×2 サマリー */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/income">
+            <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-center w-7 h-7 bg-emerald-50 rounded-xl mb-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5" />
+                  <polyline points="5 12 12 5 19 12" />
+                </svg>
+              </div>
+              <span className="text-[11px] text-slate-400">副業収入</span>
+              <p className="text-[18px] font-extrabold text-slate-900">{formatCurrency(annualIncome)}</p>
+              <p className="text-[11px] text-emerald-600">今月 +{formatCurrency(monthlyIncome)}</p>
+            </div>
           </Link>
-          <Link href="/expense/new" className="block">
-            <Card className="hover:bg-red-50 transition-colors cursor-pointer">
-              <CardContent className="pt-4 text-center">
-                <div className="text-2xl mb-1">🧾</div>
-                <p className="text-sm font-medium">+ 経費</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/receipt/new" className="block">
-            <Card className="hover:bg-blue-50 transition-colors cursor-pointer">
-              <CardContent className="pt-4 text-center">
-                <div className="text-2xl mb-1">📷</div>
-                <p className="text-sm font-medium">カメラ</p>
-              </CardContent>
-            </Card>
+          <Link href="/expense">
+            <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-center w-7 h-7 bg-orange-50 rounded-xl mb-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <polyline points="19 12 12 19 5 12" />
+                </svg>
+              </div>
+              <span className="text-[11px] text-slate-400">経費合計</span>
+              <p className="text-[18px] font-extrabold text-slate-900">{formatCurrency(annualExpense)}</p>
+              <p className="text-[11px] text-orange-500">今月 −{formatCurrency(monthlyExpense)}</p>
+            </div>
           </Link>
         </div>
 
-        {/* ナビゲーション */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Link href="/income" className="block">
-            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
-              <CardContent className="pt-4 text-center">
-                <p className="text-sm font-medium text-gray-700">収入一覧</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/expense" className="block">
-            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
-              <CardContent className="pt-4 text-center">
-                <p className="text-sm font-medium text-gray-700">経費一覧</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/summary" className="block">
-            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
-              <CardContent className="pt-4 text-center">
-                <p className="text-sm font-medium text-gray-700">確定申告</p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/settings" className="block">
-            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
-              <CardContent className="pt-4 text-center">
-                <p className="text-sm font-medium text-gray-700">設定</p>
-              </CardContent>
-            </Card>
-          </Link>
+        {/* 月別チャート（直近6ヶ月） */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[13px] font-bold text-slate-700">月別収入推移</h3>
+            <span className="text-[11px] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{year}年</span>
+          </div>
+          <YearlyChart data={recentChartData} />
+        </div>
+
+        {/* 最近の取引 */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="text-[13px] font-bold text-slate-700">最近の取引</h3>
+            <Link href="/income" className="text-[12px] text-indigo-600">すべて見る →</Link>
+          </div>
+          {recent.length === 0 ? (
+            <p className="text-[13px] text-slate-400 py-8 text-center">取引記録がありません</p>
+          ) : (
+            recent.map(tx => (
+              <div key={`${tx.type}-${tx.id}`} className="px-4 py-3 flex items-center gap-3 border-b border-slate-50 last:border-0">
+                <div className={`flex items-center justify-center w-9 h-9 rounded-xl ${tx.type === 'income' ? 'bg-emerald-50' : 'bg-orange-50'}`}>
+                  {tx.type === 'income' ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="19" x2="12" y2="5" />
+                      <polyline points="5 12 12 5 19 12" />
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <polyline points="19 12 12 19 5 12" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-slate-900 truncate">{tx.label}</p>
+                  <p className="text-[11px] text-slate-400">{formatDateJP(tx.date)} · {tx.type === 'income' ? '収入' : '経費'}</p>
+                </div>
+                <span className={`text-[14px] font-bold shrink-0 ${tx.type === 'income' ? 'text-emerald-600' : 'text-orange-500'}`}>
+                  {tx.type === 'income' ? '+' : '−'}{formatCurrency(tx.amount)}
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </main>
+
+      <BottomNav />
     </div>
   )
 }

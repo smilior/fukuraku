@@ -40,8 +40,8 @@ export default function YearlyChart({ data }: YearlyChartProps) {
           }}
         />
         <Legend />
-        <Bar dataKey="収入" fill="#22c55e" radius={[3, 3, 0, 0]} />
-        <Bar dataKey="経費" fill="#f87171" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="収入" fill="#4F46E5" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="経費" fill="#F97316" radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   )

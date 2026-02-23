@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import BottomNav from '@/components/app/bottom-nav'
 import type { ExpenseRow, ExpenseCategory } from '@/types/database'
 
 const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
@@ -21,11 +20,18 @@ interface PageProps {
   searchParams: Promise<{ month?: string }>
 }
 
+function formatCurrency(amount: number): string {
+  return `¥${amount.toLocaleString('ja-JP')}`
+}
+
+function formatDateJP(dateStr: string): string {
+  const [, month, day] = dateStr.split('-')
+  return `${Number(month)}月${Number(day)}日`
+}
+
 export default async function ExpensePage({ searchParams }: PageProps) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     redirect('/login')
@@ -40,7 +46,6 @@ export default async function ExpensePage({ searchParams }: PageProps) {
     .order('date', { ascending: false })
 
   if (month) {
-    // month = 'YYYY-MM'
     const [year, mon] = month.split('-')
     const startDate = `${year}-${mon}-01`
     const nextMonth = new Date(Number(year), Number(mon), 1)
@@ -57,7 +62,6 @@ export default async function ExpensePage({ searchParams }: PageProps) {
   const rows: ExpenseRow[] = (expensesData as ExpenseRow[] | null) ?? []
   const total = rows.reduce((sum, e) => sum + e.amount, 0)
 
-  // Generate month options for the last 12 months
   const monthOptions: { value: string; label: string }[] = []
   const now = new Date()
   for (let i = 0; i < 12; i++) {
@@ -68,118 +72,128 @@ export default async function ExpensePage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-block">
-              ← ダッシュボードへ
-            </Link>
-            <h1 className="text-2xl font-bold">経費記録</h1>
-          </div>
-          <Link href="/expense/new">
-            <Button>+ 経費を追加</Button>
+    <div className="bg-[#F8FAFC] min-h-screen pb-24">
+      {/* ヘッダー */}
+      <header className="bg-white border-b border-slate-100 px-5 py-4">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <h2 className="text-[17px] font-bold text-slate-900">経費記録</h2>
+          <Link
+            href="/expense/new"
+            className="text-[13px] text-indigo-600 font-semibold"
+          >
+            手動で追加
+          </Link>
+        </div>
+      </header>
+
+      <div className="max-w-lg mx-auto">
+        {/* AIレシートボタン */}
+        <div className="px-4 pt-4">
+          <Link
+            href="/receipt/new"
+            className="flex items-center gap-4 w-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-4 shadow-lg shadow-indigo-200 active:scale-95 transition-transform"
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl shrink-0">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-bold text-[15px]">レシートをAI仕訳</p>
+              <p className="text-white/75 text-[12px] mt-0.5">撮影するだけで自動入力</p>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </Link>
         </div>
 
-        {/* Month filter */}
-        <div className="mb-6 flex items-center gap-3">
-          <label htmlFor="month-select" className="text-sm font-medium text-gray-700">月絞り込み:</label>
+        {/* 月フィルター */}
+        <div className="px-4 pt-3">
           <form method="GET" className="flex items-center gap-2">
             <select
-              id="month-select"
               name="month"
               defaultValue={month ?? ''}
-              className="h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:border-ring"
+              className="flex-1 h-9 rounded-xl border border-slate-200 bg-white px-3 text-[13px] text-slate-700 shadow-sm focus:outline-none focus:border-indigo-400"
             >
-              <option value="">すべて</option>
+              <option value="">すべての期間</option>
               {monthOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <Button type="submit" variant="outline" size="sm">
+            <button
+              type="submit"
+              className="h-9 px-4 bg-indigo-600 text-white text-[13px] font-semibold rounded-xl"
+            >
               絞り込む
-            </Button>
+            </button>
+            {month && (
+              <Link href="/expense" className="h-9 px-3 flex items-center text-[13px] text-slate-500 border border-slate-200 rounded-xl bg-white">
+                クリア
+              </Link>
+            )}
           </form>
-          {month && (
-            <Link href="/expense" className="text-sm text-blue-600 hover:underline">
-              クリア
-            </Link>
-          )}
         </div>
 
-        {/* Summary card */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {month
-                ? `${month.replace('-', '年')}月 合計`
-                : '全期間 合計'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              ¥{total.toLocaleString('ja-JP')}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">{rows.length}件</p>
-          </CardContent>
-        </Card>
+        {/* オレンジバナー */}
+        <div className="mx-4 mt-3 bg-orange-50 border border-orange-100 rounded-2xl px-4 py-3 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] text-orange-600 font-medium">経費合計</p>
+            <p className="text-[22px] font-extrabold text-orange-700">{formatCurrency(total)}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] text-orange-600 font-medium">件数</p>
+            <p className="text-[22px] font-extrabold text-orange-700">{rows.length}件</p>
+          </div>
+        </div>
 
-        {/* Expense table */}
+        {/* カードリスト */}
         {rows.length === 0 ? (
-          <div className="text-center py-16 text-gray-500">
-            <p>経費が登録されていません。</p>
-            <Link href="/expense/new">
-              <Button variant="outline" className="mt-4">
-                最初の経費を追加
-              </Button>
+          <div className="text-center py-16 text-slate-400">
+            <p className="text-[14px] mb-4">経費が登録されていません</p>
+            <Link
+              href="/expense/new"
+              className="inline-flex items-center gap-1 bg-indigo-600 text-white text-[13px] font-semibold px-4 py-2 rounded-xl"
+            >
+              + 経費を追加する
             </Link>
           </div>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">日付</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">カテゴリ</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">説明</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">金額</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-600">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {rows.map((expense) => (
-                  <tr key={expense.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-700">{expense.date}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {CATEGORY_LABELS[expense.category]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-700 max-w-xs truncate">
-                      {expense.description}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium">
-                      ¥{expense.amount.toLocaleString('ja-JP')}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <Link
-                        href={`/expense/${expense.id}/edit`}
-                        className="text-blue-600 hover:underline mr-3 text-xs"
-                      >
-                        編集
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="space-y-2 px-4 pt-3 pb-6">
+            {rows.map((expense) => (
+              <li key={expense.id}>
+                <Link href={`/expense/${expense.id}/edit`}>
+                  <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-center w-10 h-10 bg-orange-50 rounded-xl shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14px] font-semibold text-slate-900 truncate">{expense.description}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-slate-400">{formatDateJP(expense.date)}</span>
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                          {CATEGORY_LABELS[expense.category]}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[15px] font-extrabold text-orange-500 shrink-0">
+                      −{formatCurrency(expense.amount)}
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
+
+      <BottomNav />
     </div>
   )
 }
