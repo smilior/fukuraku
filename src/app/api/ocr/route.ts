@@ -56,27 +56,50 @@ export async function POST(request: Request) {
     .getPublicUrl(storagePath)
 
   // GPT-4o Vision で OCR（Output API 使用）
-  const result = await generateText({
-    model: openai('gpt-4o'),
-    experimental_output: Output.object({ schema: OcrResultSchema }),
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: `このレシートまたは領収書を読み取り、以下の情報をJSON形式で返してください。
-日本語のレシートです。金額は円単位の数値で返してください。
-日付が読み取れない場合は今日の日付を推定してください。`,
-          },
-          { type: 'image', image: new URL(publicUrl) },
-        ],
-      },
-    ],
-  })
+  let ocrData: z.infer<typeof OcrResultSchema> | null = null
+  try {
+    const result = await generateText({
+      model: openai('gpt-4o'),
+      experimental_output: Output.object({ schema: OcrResultSchema }),
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `あなたは日本のレシート・領収書を読み取るOCR専門家です。
+以下の画像を分析し、情報を抽出してください。
 
-  // receipts テーブルに記録
-  const ocrData = result.experimental_output
+## 読み取りルール
+- store_name: 店舗名（上部に記載されていることが多い）
+- date: 日付をYYYY-MM-DD形式で（和暦は西暦に変換。例: 令和6年→2024年）
+- total_amount: 合計金額（円単位の整数。税込合計を優先。「合計」「お買上合計」等の行を参照）
+- category: 以下から最も適切なカテゴリを選択
+  - 通信費: 携帯・インターネット・電話
+  - 消耗品費: 文房具・日用品・10万円未満の備品
+  - 接待交際費: 飲食店・カフェ（打ち合わせ目的）
+  - 交通費: 電車・バス・タクシー・駐車場
+  - 広告宣伝費: 広告・チラシ・名刺
+  - 外注費: 外部サービス・業務委託
+  - 研修費: 書籍・セミナー・勉強会
+  - 地代家賃: 家賃・コワーキングスペース
+  - その他: 上記に該当しないもの
+- confidence: 読み取り精度（high/medium/low）
+
+## 注意
+- 金額は必ず整数（小数点不可）
+- 税込合計がある場合はそちらを使用
+- 日付が不明な場合はnullを返す（推測しない）`,
+            },
+            { type: 'image', image: new URL(publicUrl) },
+          ],
+        },
+      ],
+    })
+    ocrData = result.experimental_output ?? null
+  } catch (ocrError) {
+    console.error('OCR processing error:', ocrError)
+  }
   const ocrResult = ocrData ? {
     date:     ocrData.date     ?? undefined,
     amount:   ocrData.total_amount ?? undefined,
@@ -87,7 +110,7 @@ export async function POST(request: Request) {
   const { data: receipt } = await supabase.from('receipts').insert({
     user_id: user.id,
     storage_path: storagePath,
-    ocr_status: 'done',
+    ocr_status: ocrData ? 'done' : 'error',
     ocr_result: ocrResult,
     extracted_date: ocrData?.date ?? null,
     extracted_amount: ocrData?.total_amount ?? null,

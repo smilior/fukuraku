@@ -256,6 +256,38 @@ export default async function DashboardPage() {
             </Card>
           </Link>
         </div>
+
+        {/* ナビゲーション */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Link href="/income" className="block">
+            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-center">
+                <p className="text-sm font-medium text-gray-700">収入一覧</p>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/expense" className="block">
+            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-center">
+                <p className="text-sm font-medium text-gray-700">経費一覧</p>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/summary" className="block">
+            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-center">
+                <p className="text-sm font-medium text-gray-700">確定申告</p>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/settings" className="block">
+            <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-center">
+                <p className="text-sm font-medium text-gray-700">設定</p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
       </main>
     </div>
   )
