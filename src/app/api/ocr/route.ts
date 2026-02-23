@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { openai } from '@ai-sdk/openai'
 import { generateText, Output } from 'ai'
 import { z } from 'zod'
+import { rateLimit } from '@/lib/rate-limit'
 
 const OcrResultSchema = z.object({
   store_name:  z.string().nullable().describe('店舗名・取引先名'),
@@ -20,6 +21,12 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Rate limit: 10 requests per minute per user
+  const { success } = rateLimit(`ocr:${user.id}`, { maxRequests: 10, windowMs: 60_000 })
+  if (!success) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
   const formData = await request.formData()
