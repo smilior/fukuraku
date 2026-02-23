@@ -11,153 +11,184 @@ export default function OGImage() {
         style={{
           width: '100%',
           height: '100%',
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)',
+          background: 'linear-gradient(160deg, #f8f7ff 0%, #eef2ff 50%, #f0fdf4 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 100px',
+          padding: '0 80px',
+          fontFamily: 'sans-serif',
           position: 'relative',
           overflow: 'hidden',
-          fontFamily: 'sans-serif',
         }}
       >
         {/* Decorative circles */}
-        <div
-          style={{
-            position: 'absolute',
-            width: 400,
-            height: 400,
-            borderRadius: '50%',
-            background: 'rgba(83, 52, 131, 0.25)',
-            top: -100,
-            right: 200,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            width: 250,
-            height: 250,
-            borderRadius: '50%',
-            background: 'rgba(15, 52, 96, 0.4)',
-            bottom: -80,
-            left: 350,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            width: 180,
-            height: 180,
-            borderRadius: '50%',
-            border: '2px solid rgba(255,255,255,0.06)',
-            top: 60,
-            right: 480,
-          }}
-        />
+        <div style={{ position: 'absolute', width: 560, height: 560, borderRadius: '50%', background: 'rgba(79,70,229,0.06)', top: -180, right: -80 }} />
+        <div style={{ position: 'absolute', width: 320, height: 320, borderRadius: '50%', background: 'rgba(79,70,229,0.04)', bottom: -120, left: 320 }} />
 
-        {/* Left: Text content */}
-        <div style={{ display: 'flex', flexDirection: 'column', zIndex: 1 }}>
+        {/* ── Left: Text content ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', zIndex: 1, maxWidth: 580 }}>
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                background: '#4F46E5',
+                borderRadius: 14,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 7h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2z" />
+              </svg>
+            </div>
+            <span style={{ fontSize: 30, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>副楽</span>
+          </div>
+
           {/* Badge */}
           <div
             style={{
               display: 'flex',
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'rgba(255,255,255,0.85)',
-              fontSize: 18,
+              alignItems: 'center',
+              gap: 8,
+              background: 'white',
+              border: '1px solid #c7d2fe',
+              color: '#4F46E5',
+              fontSize: 15,
               fontWeight: 700,
-              letterSpacing: '0.1em',
-              padding: '6px 20px',
-              borderRadius: 20,
+              padding: '7px 18px',
+              borderRadius: 100,
               marginBottom: 28,
             }}
           >
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4F46E5' }} />
             副業サラリーマン専用 確定申告アプリ
           </div>
 
-          {/* App name */}
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 108,
-              fontWeight: 900,
-              letterSpacing: '0.06em',
-              lineHeight: 1,
-              marginBottom: 28,
-            }}
-          >
-            <span style={{ color: '#ffffff' }}>副</span>
-            <span
-              style={{
-                backgroundImage: 'linear-gradient(90deg, #a78bfa, #60a5fa)',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              楽
+          {/* Headline */}
+          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 22 }}>
+            <span style={{ fontSize: 54, fontWeight: 800, color: '#0F172A', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+              副業の確定申告を
             </span>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <span
+                style={{
+                  fontSize: 54,
+                  fontWeight: 800,
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.02em',
+                  backgroundImage: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                  backgroundClip: 'text',
+                  color: 'transparent',
+                }}
+              >
+                15分
+              </span>
+              <span style={{ fontSize: 54, fontWeight: 800, color: '#0F172A', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+                で終わらせよう
+              </span>
+            </div>
           </div>
 
-          {/* Tagline */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              fontSize: 30,
-              fontWeight: 700,
-              color: 'rgba(255,255,255,0.9)',
-              letterSpacing: '0.04em',
-              lineHeight: 1.6,
-              gap: 4,
-            }}
-          >
-            <span>レシートを撮るだけ。</span>
-            <span style={{ color: '#a78bfa' }}>確定申告の準備が終わる。</span>
-          </div>
+          {/* Subtext */}
+          <span style={{ fontSize: 20, color: '#64748B', lineHeight: 1.6 }}>
+            会計知識ゼロ・3ステップで確定申告が完了
+          </span>
         </div>
 
-        {/* Right: Feature pills */}
+        {/* ── Right: Dashboard card ── */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: 16,
+            gap: 14,
             zIndex: 1,
+            background: 'white',
+            borderRadius: 24,
+            padding: 30,
+            border: '1px solid #e0e7ff',
+            width: 390,
+            boxShadow: '0 20px 60px rgba(79,70,229,0.12)',
           }}
         >
-          {[
-            { icon: '📷', text: 'AIレシートOCRで自動分類' },
-            { icon: '📊', text: '20万円ラインを自動監視' },
-            { icon: '✅', text: '確定申告書類を自動生成' },
-          ].map((f) => (
+          {/* Income header */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: 12, color: '#94A3B8', marginBottom: 2 }}>副業所得（累計）</span>
+              <span style={{ fontSize: 34, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>¥156,800</span>
+            </div>
             <div
-              key={f.text}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 14,
-                background: 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 14,
-                padding: '14px 24px',
-                width: 340,
+                background: '#EF4444',
+                color: 'white',
+                fontSize: 11,
+                fontWeight: 700,
+                padding: '5px 12px',
+                borderRadius: 100,
               }}
             >
-              <span style={{ fontSize: 24 }}>{f.icon}</span>
-              <span
+              要申告！
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ background: '#F1F5F9', borderRadius: 100, height: 14, overflow: 'hidden' }}>
+              <div
                 style={{
-                  color: 'rgba(255,255,255,0.88)',
-                  fontSize: 18,
-                  fontWeight: 700,
-                  letterSpacing: '0.03em',
+                  width: '78%',
+                  height: '100%',
+                  background: 'linear-gradient(to right, #FBBF24, #EF4444)',
+                  borderRadius: 100,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  paddingRight: 7,
                 }}
               >
-                {f.text}
-              </span>
+                <span style={{ color: 'white', fontSize: 9, fontWeight: 700 }}>78%</span>
+              </div>
             </div>
-          ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 11, color: '#94A3B8' }}>¥0</span>
+              <span style={{ fontSize: 11, color: '#EF4444', fontWeight: 600 }}>20万円ライン</span>
+            </div>
+          </div>
+
+          {/* Income / Expense cards */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ flex: 1, background: '#F8FAFC', borderRadius: 12, padding: 14 }}>
+              <span style={{ fontSize: 11, color: '#94A3B8', display: 'block', marginBottom: 3 }}>副業収入</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', display: 'block' }}>¥192,000</span>
+              <span style={{ fontSize: 10, color: '#10B981', fontWeight: 600 }}>今月 +¥45K</span>
+            </div>
+            <div style={{ flex: 1, background: '#F8FAFC', borderRadius: 12, padding: 14 }}>
+              <span style={{ fontSize: 11, color: '#94A3B8', display: 'block', marginBottom: 3 }}>経費合計</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', display: 'block' }}>¥35,200</span>
+              <span style={{ fontSize: 10, color: '#F97316', fontWeight: 600 }}>今月 −¥8.4K</span>
+            </div>
+          </div>
+
+          {/* Feature tags */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['AI-OCR', '20万円監視', 'CSV出力'].map((tag) => (
+              <div
+                key={tag}
+                style={{
+                  background: '#EEF2FF',
+                  color: '#4F46E5',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: '5px 12px',
+                  borderRadius: 100,
+                }}
+              >
+                {tag}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     ),
