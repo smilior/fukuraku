@@ -51,13 +51,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const [
     { data: incomeData },
     { data: expenseData },
-    { data: recentIncomes },
-    { data: recentExpenses },
   ] = await Promise.all([
-    supabase.from('incomes').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd),
-    supabase.from('expenses').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd),
-    supabase.from('incomes').select('*').eq('user_id', user.id).order('date', { ascending: false }).limit(5),
-    supabase.from('expenses').select('*').eq('user_id', user.id).order('date', { ascending: false }).limit(5),
+    supabase.from('incomes').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd).order('date', { ascending: false }),
+    supabase.from('expenses').select('*').eq('user_id', user.id).gte('date', yearStart).lte('date', yearEnd).order('date', { ascending: false }),
   ])
 
   const incomes = (incomeData ?? []) as IncomeRow[]
@@ -100,12 +96,15 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     }
   })
 
-  // 直近取引（収入・経費を合算して日付降順 top5）
+  // 直近取引（年間データから直近5件ずつ取得し、合算して日付降順 top5）
+  const recentIncomes = incomes.slice(0, 5)  // already ordered by date desc
+  const recentExpenses = expenses.slice(0, 5)
+
   const recent = [
-    ...((recentIncomes ?? []) as IncomeRow[]).map(r => ({
+    ...recentIncomes.map(r => ({
       id: r.id, type: 'income' as const, date: r.date, label: r.source, amount: r.amount,
     })),
-    ...((recentExpenses ?? []) as ExpenseRow[]).map(r => ({
+    ...recentExpenses.map(r => ({
       id: r.id, type: 'expense' as const, date: r.date, label: r.description, amount: r.amount,
     })),
   ]
