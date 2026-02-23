@@ -13,7 +13,7 @@ export default function NotificationPopover({ notifications }: { notifications: 
       if (open) setRead(new Set(notifications.map(n => n.id)))
     }}>
       <PopoverTrigger asChild>
-        <button className="relative w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center" aria-label="通知を開く">
+        <button className="relative w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none" aria-label="通知を開く">
           <Bell className="w-4 h-4 text-slate-600" strokeWidth={1.8} />
           {unread.length > 0 && (
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />

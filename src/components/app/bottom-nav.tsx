@@ -128,11 +128,13 @@ export default function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors cursor-pointer ${
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${
                   active ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <svg
+                  aria-hidden="true"
                   width="20"
                   height="20"
                   viewBox="0 0 24 24"
@@ -157,7 +159,8 @@ export default function BottomNav() {
             return (
               <Link
                 href="/settings"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors cursor-pointer ${
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${
                   active ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
@@ -194,7 +197,7 @@ export default function BottomNav() {
                 <Link
                   key="fab"
                   href="/income/new"
-                  className="flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-full -mt-4 shadow-lg shadow-indigo-300 text-white"
+                  className="flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-full -mt-4 shadow-lg shadow-indigo-300 text-white focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:outline-none"
                   aria-label="収入を追加"
                 >
                   <svg
@@ -219,7 +222,9 @@ export default function BottomNav() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1 ${
+                aria-label={tab.label}
+                aria-current={active ? 'page' : undefined}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded-lg ${
                   active ? 'text-indigo-600' : 'text-slate-400'
                 }`}
               >
