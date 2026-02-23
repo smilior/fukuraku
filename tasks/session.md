@@ -3,26 +3,25 @@
 ## 最終更新: 2026-02-23
 
 ## 今セッションでやったこと
-- Issue #4: オンボーディング画面（3ステップウィザード）実装・完了
-- Issue #5: ダッシュボードUI・20万円バー実装・完了
-  - 20万円プログレスバー（年間所得 / 20万円）
-  - 今月の収入・経費・差引所得カード
-  - Recharts 年間月別棒グラフ（yearly-chart.tsx as Client Component）
-  - 直近取引リスト（収入+経費合算 top5）
-  - クイックアクション（+収入 / +経費 / カメラ準備中）
-- Issue #6: 収入記録画面CRUD実装・完了
-  - /income（一覧・月別フィルタ）
-  - /income/new（追加フォーム・源泉徴収10.21%自動計算・Switch）
-  - /income/[id]/edit（編集・Dialog削除確認）
-- Issue #7: 経費記録画面CRUD実装・完了
-  - /expense（一覧・月別フィルタ）
-  - /expense/new（追加フォーム）
-  - /expense/[id]/edit（編集・削除確認）
-- shadcn/ui: badge, dialog, select, switch, table, textarea 追加インストール
-- recharts@3.7.0 追加
+Week 3-4 Milestone の全 Issue (#8〜#14) を完了
 
-## Milestone 1 (Week 1-2) 完了状況
-すべてのIssueが完了 → 次は Milestone 2 (Week 3-4: MVP完成) へ
+| Issue | 内容 |
+|-------|------|
+| #5〜#7 | ダッシュボード・収入/経費CRUD |
+| #8 | レシートOCR（GPT-4o Vision + AI SDK v6） |
+| #9 | 確定申告サマリー・CSVエクスポート |
+| #10 | 設定画面（プロフィール・削除） |
+| #11 | Stripe決済（Checkout/Webhook/Portal） |
+| #12 | PWA（next-pwa・manifest・アイコン） |
+| #13 | Vitestユニットテスト32件・GitHub Actions CI |
+| #14 | ランディングページ |
+
+## 重要な技術メモ
+- AI SDK v6: `experimental_output: Output.object()` → `result.experimental_output` でアクセス
+- Supabase Storage: `receipts` バケットを手動で作成する必要あり（Supabase Dashboard）
+- Stripe API version: `2026-01-28.clover`
+- テスト用定数は `src/lib/plans.ts`（stripe.ts から分離済み、テストで安全にインポート可）
+- PWAアイコン: `public/icons/icon-192.png` / `icon-512.png`（本番前に正式デザインへ差し替え）
 
 ## 環境一覧（確定）
 | 環境 | URL | ブランチ |
@@ -32,10 +31,10 @@
 | 本番 | https://fukuraku.vercel.app | main |
 
 ## 次セッションの再開ポイント
-`gh issue list --milestone "Week 3-4: MVP完成"` で次Issueを確認してから着手
+`gh issue list --milestone "Week 5-6: ベータリリース"` で次Issueを確認
 
 ## 未解決・持ち越し
+- Supabase Storage の `receipts` バケット作成（Dashboard で手動）
 - ローカルWebhookテスト: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
 - Production Supabase（mjmxibsponmvucyqdpvc）への切り替えは本番運用開始時
-- Stripe 本番モードキー（sk_live_）は有料ユーザー発生時に切り替え
-- `Database` 型に `Relationships: []` が必須（postgrest-js v2）— テーブル追加時も必須
+- `Database` 型に `Relationships: []` が必須（postgrest-js v2）
