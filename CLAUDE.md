@@ -53,6 +53,13 @@
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
+### 7. Commit Rules
+- **コード変更**: テスト（`bunx tsc --noEmit` + 該当テスト）がパスしてからコミット
+- **CLAUDE.md 更新**: 更新のたびに即コミット（テスト不要）
+- **tasks/ 更新**: コード変更と同じコミットに含めてよい
+- コミットメッセージは Conventional Commits 形式（`feat:` `chore:` `fix:` など）
+- ユーザーに明示的に依頼されない限り push しない
+
 ---
 
 ## Task Management
@@ -60,13 +67,22 @@
 作業単位は **GitHub Issues**（smilior/fukuraku）で管理する。
 優先順位は **Milestoneの順番**に従う（`gh api repos/smilior/fukuraku/milestones` で確認）。
 
-1. **Milestone確認**: 現在のMilestoneのIssueを優先して着手する
-2. **依存関係確認**: Issueの依存順序を考慮してから着手する（基盤→機能→UIの順）
-3. **Issue起点**: 作業開始前に `gh issue view <番号>` でIssueの内容を確認する
-4. **Plan First**: 非自明なタスクはplanモードで設計してからImplement
-5. **Track Progress**: 作業完了後にIssueをcloseし、`memory/MEMORY.md` の「次のIssue」を更新
-6. **Capture Lessons**: 修正を受けたら `tasks/lessons.md` に記録
-7. `tasks/todo.md` は「現在進行中のIssue」と「セッションメモ」のみ記載（Issueと重複管理しない）
+### ファイル役割
+| ファイル | 用途 | 更新タイミング |
+|---------|------|--------------|
+| `tasks/todo.md` | Milestone順の着手順序・次のIssue | Issue close時のみ |
+| `tasks/session.md` | 直近セッションの作業内容・再開ポイント | **毎セッション上書き** |
+| `memory/MEMORY.md` | プロジェクト全体の恒久情報 | 重要な決定事項のみ |
+
+### ルール
+1. **セッション開始時**: `tasks/session.md` を読んで前回の再開ポイントを確認する
+2. **Milestone確認**: 現在のMilestoneのIssueを優先して着手する
+3. **依存関係確認**: Issueの依存順序を考慮してから着手する（基盤→機能→UIの順）
+4. **Issue起点**: 作業開始前に `gh issue view <番号>` でIssueの内容を確認する
+5. **Plan First**: 非自明なタスクはplanモードで設計してからImplement
+6. **Track Progress**: 作業完了後にIssueをcloseし、`tasks/todo.md` の次のIssueを更新
+7. **Session更新必須**: 作業のたびに `tasks/session.md` を上書きして最新状態を保つ（やったこと・再開ポイント・持ち越し）
+8. **Capture Lessons**: 修正を受けたら `tasks/lessons.md` に記録
 
 ---
 
