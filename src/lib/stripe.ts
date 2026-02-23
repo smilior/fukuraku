@@ -12,18 +12,4 @@ export const PRICE_IDS = {
 
 export type PlanKey = keyof typeof PRICE_IDS
 
-/** plan カラムの値から表示名を返す */
-export const PLAN_LABELS: Record<string, string> = {
-  free:   '無料',
-  basic:  'ベーシック',
-  pro:    'プロ',
-  season: 'シーズンパス',
-}
-
-/** 年間件数上限 (free: 10, basic: 100, pro/season: Infinity) */
-export const PLAN_LIMITS: Record<string, number> = {
-  free:   10,
-  basic:  100,
-  pro:    Infinity,
-  season: Infinity,
-}
+export { PLAN_LABELS, PLAN_LIMITS } from '@/lib/plans'
